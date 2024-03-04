@@ -1,0 +1,6 @@
+/node_modules
+.env
+*.txt
+test.js
+.flowconfig
+.idea
