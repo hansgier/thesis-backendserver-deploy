@@ -6,11 +6,13 @@ module.exports = {
     DB: process.env.DB_NAME,
     PORT: process.env.DB_PORT,
     dialect: 'mysql',
-
+    dialectOptions: {
+        ssl: true, // enable SSL mode
+    },
     pool: {
         max: 5,
         min: 0,
         acquire: 30000,
-        idle: 10000
-    }
-}
+        idle: 10000,
+    },
+};
