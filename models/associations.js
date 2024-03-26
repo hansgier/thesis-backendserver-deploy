@@ -16,6 +16,7 @@ module.exports = (db) => {
         progressHistories: ProgressHistory,
         tags: Tag,
         views: View,
+        announcements: Announcement,
     } = db;
 
     // User - Token (one-to-many)
@@ -117,4 +118,8 @@ module.exports = (db) => {
     // Report - Media (one-to-many)
     Report.hasMany(Media, { foreignKey: 'report_id', as: 'media', onDelete: 'cascade' });
     Media.belongsTo(Report, { foreignKey: 'report_id', as: 'report' });
+
+    // User - Announcement (one-to-many)
+    User.hasMany(Announcement, { foreignKey: 'createdBy', as: 'announcements' });
+    Announcement.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
 };

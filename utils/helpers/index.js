@@ -16,6 +16,7 @@ const {
 const { findOrCreateReport, getReportQuery } = require('./reportsHelpers');
 const { validationInput, getProgressHistoryQuery } = require('./progressHistoriesHelpers');
 const { getMediaQuery } = require("./mediaHelpers");
+const { getAnnouncementQuery } = require("./announcementHelpers");
 
 
 module.exports = {
@@ -38,4 +39,5 @@ module.exports = {
     validationInput,
     getProgressHistoryQuery,
     getMediaQuery,
+    getAnnouncementQuery,
 };

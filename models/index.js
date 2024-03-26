@@ -32,6 +32,7 @@ db.reactions = require('./Reaction')(sequelize, DataTypes);
 db.tokens = require('./Token')(sequelize, DataTypes);
 db.tags = require('./Tag')(sequelize, DataTypes);
 db.views = require('./View')(sequelize, DataTypes);
+db.announcements = require('./Announcement')(sequelize, DataTypes);
 
 associations(db);
 

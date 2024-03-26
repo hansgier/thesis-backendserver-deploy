@@ -22,6 +22,7 @@ const projectRouter = require('./routes/projectRoutes');
 const commentRouter = require('./routes/commentRoutes');
 const reactionRouter = require('./routes/reactionRoutes');
 const reportRouter = require('./routes/reportRoutes');
+const announcementRouter = require('./routes/announcementRoutes');
 const populateRouter = require('./routes/1populateRoutes');
 
 // ------------------- MIDDLEWARES ------------------- //
@@ -46,7 +47,9 @@ app.use('/api/projects', projectRouter);
 app.use('/api/comments', commentRouter);
 app.use('/api/reactions', reactionRouter);
 app.use('/api/reports', reportRouter);
+app.use('/api/announcements', announcementRouter);
 app.use('/api/populate', populateRouter);
+
 
 // ------------------- ERROR MIDDLEWARES ------------------- //
 
