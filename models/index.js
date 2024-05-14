@@ -26,13 +26,14 @@ db.barangays = require('./Barangay')(sequelize, DataTypes);
 db.projects = require('./Project')(sequelize, DataTypes);
 db.media = require('./Media')(sequelize, DataTypes);
 db.comments = require('./Comment')(sequelize, DataTypes);
-db.reports = require('./Report')(sequelize, DataTypes);
-db.progressHistories = require('./ProgressHistory')(sequelize, DataTypes);
+db.updates = require('./Update')(sequelize, DataTypes);
 db.reactions = require('./Reaction')(sequelize, DataTypes);
 db.tokens = require('./Token')(sequelize, DataTypes);
 db.tags = require('./Tag')(sequelize, DataTypes);
 db.views = require('./View')(sequelize, DataTypes);
 db.announcements = require('./Announcement')(sequelize, DataTypes);
+db.conversations = require('./Conversation')(sequelize, DataTypes);
+db.messages = require('./Message')(sequelize, DataTypes);
 
 associations(db);
 

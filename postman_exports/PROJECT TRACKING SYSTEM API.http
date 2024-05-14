@@ -180,7 +180,7 @@ Content-Type: application/json
   "title": "charity 1",
   "description": "JYJTDSRGAGHJDTSRETYRTYWERGDFGSRTQWEFGDHSRTYWERGDFHSTYAERg",
   "objectives": "1. To widening the roads 2. to road 3. taeta",
-  "budget": 2000000.00,
+  "cost": 2000000.00,
   "start_date": "2023-10-23 08:45:21",
   "due_date": "2024-10-23 08:45:21",
   "completion_date": "2024-10-23 08:45:21",
@@ -209,7 +209,7 @@ GET {{URL}}/projects?
     barangays=1&
     status=completed&
     sort=progress&
-    budgetRange=1000-10000&
+    costRange=1000-10000&
     progressRange=>&
     viewsRange=<45&
     page=1&

@@ -13,8 +13,7 @@ const {
     deleteProjectReaction,
     deleteCommentReaction,
 } = require('./reactionsHelpers');
-const { findOrCreateReport, getReportQuery } = require('./reportsHelpers');
-const { validationInput, getProgressHistoryQuery } = require('./progressHistoriesHelpers');
+const { validationInput, getUpdateQuery } = require('./updatesHelpers');
 const { getMediaQuery } = require("./mediaHelpers");
 const { getAnnouncementQuery } = require("./announcementHelpers");
 
@@ -34,10 +33,8 @@ module.exports = {
     editCommentReaction,
     deleteProjectReaction,
     deleteCommentReaction,
-    findOrCreateReport,
-    getReportQuery,
     validationInput,
-    getProgressHistoryQuery,
+    getUpdateQuery,
     getMediaQuery,
     getAnnouncementQuery,
 };

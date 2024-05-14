@@ -2,14 +2,50 @@ const { StatusCodes } = require("http-status-codes");
 const {
     sequelize,
     projects: Project,
-    progressHistories: ProgressHistory,
-    reports: Report,
+    updates: Update,
     media: Media,
 } = require('../models');
 const { ThrowErrorIf, NotFoundError, BadRequestError } = require("../errors");
 const { getMediaQuery } = require("../utils/helpers");
 const { deleteMediaFiles, createMediaRecords, deleteUploadedFiles } = require("../utils/helpers/mediaHelpers");
 const { checkPermissions } = require("../utils");
+const cloudinary = require("cloudinary").v2;
+
+const uploadMedia = async (req, res) => {
+    await cloudinary.uploader.upload(req.file.path, function (err, result) {
+        if (err) {
+            console.log(err);
+            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                msg: "Error uploading the image",
+            });
+        } else {
+            return res.status(StatusCodes.OK).json({
+                success: true,
+                msg: "Image uploaded successfully",
+                image_url: result,
+            });
+        }
+    });
+};
+
+const deleteUploadedMedia = async (req, res) => {
+    try {
+        const { uploadedImages } = req.body;
+
+        // Delete each uploaded image from Cloudinary
+        await Promise.all(
+            uploadedImages.map((image) =>
+                cloudinary.uploader.destroy(image.url.split('/').pop().split('.')[0]),
+            ),
+        );
+
+        res.status(200).json({ message: 'Uploaded images deleted' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Error deleting uploaded images' });
+    }
+};
 
 /**
  * Retrieves all media based on the provided parameters.
@@ -19,7 +55,7 @@ const { checkPermissions } = require("../utils");
  */
 const getAllMedia = async (req, res) => {
     // Extract the required parameters from the request
-    const { projectId, reportId, progressHistoryId } = req.params;
+    const { projectId, updateId } = req.params;
     const options = getMediaQuery(req.query);
 
     let result = {};
@@ -44,10 +80,8 @@ const getAllMedia = async (req, res) => {
     };
 
     // Determine which model and ID to use based on the provided parameters
-    if (progressHistoryId && projectId)
-        result = await getMediaResult(ProgressHistory, progressHistoryId, options);
-    else if (reportId)
-        result = await getMediaResult(Report, reportId, options);
+    if (updateId && projectId)
+        result = await getMediaResult(Update, updateId, options);
     else if (projectId)
         result = await getMediaResult(Project, projectId, options);
     else
@@ -58,15 +92,15 @@ const getAllMedia = async (req, res) => {
 };
 
 /**
- * Updates the media for a project or progress history.
+ * Updates the media for a project or update.
  *
  * @param {Object} req - The request object containing parameters and files.
  * @param {Object} res - The response object used to send the response.
  * @returns {Promise<void>} - A promise that resolves when the media is updated.
  */
 const updateMedia = async (req, res) => {
-    const { projectId, progressHistoryId } = req.params;
-    const files = req.files;
+    const { projectId, updateId } = req.params;
+    const files = req.file;
 
     try {
         let result;
@@ -76,26 +110,26 @@ const updateMedia = async (req, res) => {
             return res.status(StatusCodes.OK).json({ msg: "You have not uploaded any files" });
         }
 
-        if (progressHistoryId && projectId) {
+        if (updateId && projectId) {
             result = await sequelize.transaction(async (t) => {
-                // Find the progress history
-                const progressHistory = await ProgressHistory.findOne({
-                    where: { project_id: projectId, id: progressHistoryId },
+                // Find the update
+                const update = await Update.findOne({
+                    where: { project_id: projectId, id: updateId },
                     transaction: t,
                 });
 
-                // Throw an error if progress history is not found
-                ThrowErrorIf(!progressHistory, "Progress history not found", NotFoundError);
+                // Throw an error if update is not found
+                ThrowErrorIf(!update, "Update not found", NotFoundError);
 
                 // Delete existing media files
-                const progressHistoryMedia = await progressHistory.getMedia({ transaction: t });
-                await deleteMediaFiles(progressHistoryMedia, t);
+                const updateMedia = await update.getMedia({ transaction: t });
+                await deleteMediaFiles(updateMedia, t);
 
-                // Create new media records and associate them with the progress history
-                const newMediaRecords = await createMediaRecords(files, projectId, progressHistoryId, t);
-                await progressHistory.setMedia(newMediaRecords, { transaction: t });
+                // Create new media records and associate them with the update
+                const newMediaRecords = await createMediaRecords(files, projectId, updateId, t);
+                await update.setMedia(newMediaRecords, { transaction: t });
 
-                return progressHistory;
+                return update;
             });
         } else if (projectId) {
             result = await sequelize.transaction(async (t) => {
@@ -107,7 +141,7 @@ const updateMedia = async (req, res) => {
                         {
                             model: Media,
                             as: "media",
-                            attributes: ["url", "mime_type", "size", "recorded_date", "createdAt", "updatedAt"],
+                            attributes: ["url", "mime_type", "size", "createdAt", "updatedAt"],
                         },
                     ],
                 });
@@ -134,7 +168,7 @@ const updateMedia = async (req, res) => {
 
         // Send the response
         res.status(StatusCodes.OK).json({
-            [`${ projectId && progressHistoryId ? "progressHistory" : "project" }`]: {
+            [`${ projectId && updateId ? "update" : "project" }`]: {
                 id: result.id,
                 media: result.media,
             },
@@ -147,36 +181,36 @@ const updateMedia = async (req, res) => {
 };
 
 /**
- * Deletes all media associated with a project or progress history.
+ * Deletes all media associated with a project or update.
  *
  * @param {Object} req - The request object containing parameters.
  * @param {Object} res - The response object to send back to the client.
  * @returns {Object} - The response object with a success message.
  */
 const deleteAllMedia = async (req, res) => {
-    const { projectId, progressHistoryId } = req.params;
+    const { projectId, updateId } = req.params;
 
-    // If both projectId and progressHistoryId are provided
-    if (projectId && progressHistoryId) {
+    // If both projectId and updateId are provided
+    if (projectId && updateId) {
         await sequelize.transaction(async (t) => {
             // Find the project by its ID
             const project = await Project.findByPk(projectId, { transaction: t });
             ThrowErrorIf(!project, "Project not found", NotFoundError);
 
-            // Find the progress history by project ID and progress history ID
-            const progressHistory = await ProgressHistory.findOne({
-                where: { project_id: projectId, id: progressHistoryId },
+            // Find the update by project ID and update ID
+            const update = await Update.findOne({
+                where: { project_id: projectId, id: updateId },
             }, { transaction: t });
-            ThrowErrorIf(!progressHistory, "Progress history not found", NotFoundError);
+            ThrowErrorIf(!update, "Update not found", NotFoundError);
 
             // Check if the user has permissions to delete media in the project
             checkPermissions(req.user, project.createdBy);
 
-            // Get all media associated with the progress history
-            const progressHistoryMedia = await progressHistory.getMedia({ transaction: t });
+            // Get all media associated with the update
+            const updateMedia = await update.getMedia({ transaction: t });
 
             // Delete the media files
-            await deleteMediaFiles(progressHistoryMedia, t);
+            await deleteMediaFiles(updateMedia, t);
         });
     }
     // If only projectId is provided
@@ -196,15 +230,15 @@ const deleteAllMedia = async (req, res) => {
             await deleteMediaFiles(projectMedia, t);
         });
     }
-    // If neither projectId nor progressHistoryId is provided
+    // If neither projectId nor updateId is provided
     else {
         throw new BadRequestError('Id is required');
     }
 
     // Send back a success message to the client
     res.status(StatusCodes.OK).json({
-        msg: projectId && progressHistoryId
-            ? 'All progress history media deleted'
+        msg: projectId && updateId
+            ? 'All update media deleted'
             : 'All project media deleted',
     });
 };
@@ -213,4 +247,6 @@ module.exports = {
     getAllMedia,
     updateMedia,
     deleteAllMedia,
+    uploadMedia,
+    deleteUploadedMedia,
 };

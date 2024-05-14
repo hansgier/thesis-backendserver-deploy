@@ -45,24 +45,13 @@ module.exports = (sequelize, DataTypes) => {
                     },
                 },
             },
-            objectives: {
-                type: DataTypes.TEXT,
-                allowNull: true,
-                validate: {
-                    isText(value) {
-                        if (typeof value !== 'string') {
-                            throw new Error('Objectives must be a text');
-                        }
-                    },
-                },
-            },
-            budget: {
+            cost: {
                 type: DataTypes.DECIMAL(15, 2),
                 allowNull: true,
                 validate: {
                     min: {
                         args: [0],
-                        msg: 'Budget cannot be negative',
+                        msg: 'Cost cannot be negative',
                     },
                     isDecimal: {
                         args: true,
@@ -151,6 +140,10 @@ module.exports = (sequelize, DataTypes) => {
                         msg: 'Progress must be an integer',
                     },
                 },
+            },
+            funding_source: {
+                type: DataTypes.STRING,
+                allowNull: true,
             },
             views: {
                 type: DataTypes.INTEGER,

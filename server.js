@@ -1,14 +1,38 @@
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
+require('./utils/deleteExpiredMessages');
 require('express-async-errors');
 
-// ------------------- IMPORTS ------------------- //
+const allowedOrigins = [
+    "localhost:5173",
+    "localhost:5000",
+    "https://ormocpis.vercel.app",
+];
 
+// ------------------- IMPORTS ------------------- //
+const cors = require('cors');
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+};
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const { cloudinaryConfig } = require('./config/cloudinaryConfig');
 const express = require('express');
 const app = express();
+const cloudinary = require('cloudinary').v2;
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+const fileUpload = require("express-fileupload");
 
 const notFoundMiddleware = require('./middlewares/not-found');
 const errorHandlerMiddleware = require('./middlewares/error-handler');
@@ -21,12 +45,13 @@ const barangayRouter = require('./routes/barangayRoutes');
 const projectRouter = require('./routes/projectRoutes');
 const commentRouter = require('./routes/commentRoutes');
 const reactionRouter = require('./routes/reactionRoutes');
-const reportRouter = require('./routes/reportRoutes');
 const announcementRouter = require('./routes/announcementRoutes');
 const populateRouter = require('./routes/1populateRoutes');
+const chatRouter = require('./routes/chatRoutes');
 
 // ------------------- MIDDLEWARES ------------------- //
 
+app.use(cors(corsOptions));
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));
@@ -46,9 +71,9 @@ app.use('/api/barangays', barangayRouter);
 app.use('/api/projects', projectRouter);
 app.use('/api/comments', commentRouter);
 app.use('/api/reactions', reactionRouter);
-app.use('/api/reports', reportRouter);
 app.use('/api/announcements', announcementRouter);
 app.use('/api/populate', populateRouter);
+app.use('/api/conversations', chatRouter);
 
 
 // ------------------- ERROR MIDDLEWARES ------------------- //

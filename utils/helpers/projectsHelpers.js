@@ -12,6 +12,7 @@ const {
     NotFoundError,
 } = require("../../errors");
 const { paginationControllerFunc } = require("../index");
+const { cloudinary } = require("../../config/cloudinaryConfig");
 
 // -------------------------------- CREATE -------------------------------- //
 
@@ -43,10 +44,6 @@ const convertAndValidate = (str, error) => {
 
 /**
  * Validates the request and retrieves necessary data for creating a project.
- *
- * @param {Object} req - The request object.
- * @param {String} barangayIds - The list of barangay IDs.
- * @param {String} tagsIds - The list of tag IDs.
  * @returns {Object} - An object containing the tags, barangays, and user.
  * @throws {NotFoundError} - If the user, barangays, or tags are not found.
  * @throws {BadRequestError} - If the user's barangay is already in the project.
@@ -95,8 +92,7 @@ const validationCreate = async (req, barangayIds, tagsIds) => {
 const PROJECT_DATA_KEYS = {
     title: "title",
     description: "description",
-    objectives: "objectives",
-    budget: "budget",
+    cost: "cost",
     progress: "progress",
     start_date: "start_date",
     due_date: "due_date",
@@ -118,8 +114,7 @@ const validateAndUpdateProject = async (project, projectData, user) => {
     let {
         [PROJECT_DATA_KEYS.title]: title,
         [PROJECT_DATA_KEYS.description]: description,
-        [PROJECT_DATA_KEYS.objectives]: objectives,
-        [PROJECT_DATA_KEYS.budget]: budget,
+        [PROJECT_DATA_KEYS.cost]: cost,
         [PROJECT_DATA_KEYS.progress]: progress,
         [PROJECT_DATA_KEYS.start_date]: start_date,
         [PROJECT_DATA_KEYS.due_date]: due_date,
@@ -141,6 +136,36 @@ const validateAndUpdateProject = async (project, projectData, user) => {
     if (tagsIds) {
         await validateTagIds(tagsIds);
     }
+
+    // Handle image uploads
+    const uploadedImages = projectData.uploadedImages || [];
+    const existingMedia = await project.getMedia();
+
+    // Collect the public IDs of the media records to be removed
+    const publicIdsToDelete = existingMedia.map((media) => media.url.split('/').pop().split('.')[0]);
+
+    // Remove existing media records that are not present in the new uploads
+    const mediaToRemove = existingMedia.filter(
+        (media) => !uploadedImages.some((upload) => upload.secure_url.split('/').pop().split('.')[0] === media.url.split('/').pop().split('.')[0]),
+    );
+    await Promise.all(mediaToRemove.map((media) => media.destroy()));
+
+    // Delete the replaced images from Cloudinary
+    await Promise.all(publicIdsToDelete.map((publicId) => cloudinary.uploader.destroy(publicId)));
+
+    // Create new media records for the uploaded images
+    const newMedia = uploadedImages.filter(
+        (upload) => !existingMedia.some((media) => media.url.split('/').pop().split('.')[0] === upload.public_id),
+    );
+    const mediaRecords = await Promise.all(
+        newMedia.map((upload) => Media.create({
+            url: upload.secure_url,
+            mime_type: upload.resource_type,
+            size: upload.bytes,
+            project_id: project.id,
+        })),
+    );
+    await project.addMedia(mediaRecords);
 
     progress = status === "completed" ? 100 : progress;
     projectData = {
@@ -237,8 +262,7 @@ const compareInputValues = async (project, projectData) => {
     const {
         title,
         description,
-        objectives,
-        budget,
+        cost,
         progress,
         start_date,
         due_date,
@@ -250,8 +274,7 @@ const compareInputValues = async (project, projectData) => {
     const {
         title: currentTitle,
         description: currentDescription,
-        objectives: currentObjectives,
-        budget: currentBudget,
+        cost: currentCost,
         progress: currentProgress,
         start_date: currentStartDate,
         due_date: currentDueDate,
@@ -272,13 +295,8 @@ const compareInputValues = async (project, projectData) => {
         BadRequestError,
     );
     ThrowErrorIf(
-        objectives === currentObjectives,
-        'Objectives are the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        budget === currentBudget,
-        'Budget is the same as the current value',
+        cost === currentCost,
+        'Cost is the same as the current value',
         BadRequestError,
     );
     ThrowErrorIf(
@@ -439,7 +457,7 @@ const searchProjectsByTitle = (options, search) => {
  * @param {string} queryParams.sort - A string to sort projects by.
  * @param {string} queryParams.progressRange - A string to filter projects by progress range.
  * @param {string} queryParams.viewsRange - A string to filter projects by views range.
- * @param {string} queryParams.budgetRange - A string to filter projects by budget range.
+ * @param {string} queryParams.costRange - A string to filter projects by cost range.
  * @param {string} queryParams.page - A string to specify the page number for pagination.
  * @param {string} queryParams.limit - A string to specify the number of projects per page for pagination.
  * @returns {Object} - A Sequelize query object.
@@ -452,7 +470,7 @@ const getProjectQuery = ({
                              sort,
                              progressRange,
                              viewsRange,
-                             budgetRange,
+                             costRange,
                              page = "1",
                              limit = "10",
                          }) => {
@@ -500,8 +518,8 @@ const getProjectQuery = ({
     // Filter projects by views range if viewsRange query is provided
     viewsRange && filterRange(options, 'views', viewsRange);
 
-    // Filter projects by budget range if budgetRange query is provided
-    budgetRange && filterRange(options, 'budget', budgetRange);
+    // Filter projects by cost range if costRange query is provided
+    costRange && filterRange(options, 'cost', costRange);
 
     // Paginate projects if page and limit query parameters are provided
     (page && limit) && paginationControllerFunc(page, limit, options);

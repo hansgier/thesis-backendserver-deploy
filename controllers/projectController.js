@@ -1,3 +1,4 @@
+const cloudinary = require("cloudinary").v2;
 const { StatusCodes } = require('http-status-codes');
 const {
     sequelize,
@@ -8,6 +9,7 @@ const {
     views: View,
     comments: Comment,
     media: Media,
+    updates: Update,
 } = require('../models');
 const {
     ThrowErrorIf,
@@ -28,93 +30,69 @@ const fs = require("fs");
  * @returns {Promise<void>} - A Promise that resolves when the project is created.
  */
 const addProject = async (req, res) => {
-    const files = req.files;
-    // Destructure the project data from the request body
     const {
         title,
         description,
-        objectives,
-        budget,
+        cost,
         start_date,
         due_date,
         completion_date,
         status,
         tagsIds,
         barangayIds,
+        uploadedImages,
     } = req.body;
 
+    const t = await sequelize.transaction();
+
     try {
-        // Validate the tags and barangays, and get the user information
         const { tags, barangays, user } = await validationCreate(req, barangayIds, tagsIds);
 
-        // Define the include options for the Project model
-        const includeOptions = [
-            {
-                model: Tag,
-                as: 'tags',
-                attributes: ['id', 'name'],
-                through: { attributes: [] },
-            },
-            {
-                model: Barangay,
-                as: 'barangays',
-                attributes: ['name'],
-                through: { attributes: [] },
-            },
-            {
-                model: Media,
-                as: 'media',
-                attributes: ['url', 'mime_type'],
-            },
-        ];
-        // Create the project data object
         const projectData = {
             title,
             description,
-            objectives,
-            budget,
+            cost,
             start_date,
             due_date,
             completion_date: !completion_date ? null : completion_date,
             status,
             createdBy: user.id,
         };
-        const result = await sequelize.transaction(async (t) => {
-            // Create the new project and include the tags and barangays
-            const newProject = await Project.create(projectData, { include: includeOptions, transaction: t });
 
-            if (files) {
-                const mediaRecords = await Promise.all(files.map(async file => {
-                    return await Media.create({
-                        url: file.path,
-                        mime_type: file.mimetype,
-                        size: file.size,
+        const newProject = await Project.create(projectData, { transaction: t });
+
+        const mediaRecords = await Promise.all(
+            uploadedImages.map((image) =>
+                Media.create(
+                    {
+                        url: image.secure_url,
+                        mime_type: image.resource_type,
+                        size: image.bytes,
                         project_id: newProject.id,
-                    }, { transaction: t });
-                }));
-                await newProject.addMedia(mediaRecords, { transaction: t });
-            }
+                    },
+                    { transaction: t },
+                ),
+            ),
+        );
 
-            // Add the tags and barangays to the project
-            await Promise.all([newProject.addTags(tags, { transaction: t }), newProject.addBarangays(barangays, { transaction: t })]);
+        await newProject.addMedia(mediaRecords, { transaction: t });
+        await Promise.all([
+            newProject.addTags(tags, { transaction: t }),
+            newProject.addBarangays(barangays, { transaction: t }),
+        ]);
 
-            // Return the new project
-            return newProject;
-        });
+        await newProject.reload({ transaction: t });
 
-        // Reload the project to include the associated tags and barangays
-        await result.reload();
+        await t.commit();
 
-        // Send the response
-        res.status(StatusCodes.CREATED).json({ msg: 'Success! New project created', project: result });
+        res.status(StatusCodes.CREATED).json({ msg: 'Success! New project created', project: newProject });
     } catch (error) {
-        await Promise.all(files.map(async (file) => {
-            const filePath = path.normalize(
-                path.join(__dirname, "../", file.path),
-            );
-            await fs.promises.unlink(filePath);
-        }));
-        throw error;
+        await t.rollback();
+        console.error(error);
+        await Promise.all(
+            uploadedImages.map((image) => cloudinary.uploader.destroy(image.url.split('/').pop().split('.')[0])),
+        );
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Failed to create project', error: error.message });
     }
 };
 
@@ -133,11 +111,10 @@ const getAllProjects = async (req, res) => {
     // Retrieve all projects based on the options
     const projects = await Project.findAll(options);
 
-    // Add comment, reaction, and report count to each project
+    // Add comment, reaction count to each project
     for (const project of projects) {
         project.dataValues.reactionCount = await project.countReactions();
         project.dataValues.commentCount = await project.countComments();
-        project.dataValues.reportCount = await project.countReports();
     }
 
     // If no projects found, return a response with a message
@@ -172,7 +149,7 @@ const getProject = async (req, res) => {
 
     // Find the project by ID, including associated tags and barangays
     const project = await Project.findByPk(id, {
-        attributes: ['id', 'title', 'description', 'objectives', 'budget', 'start_date', 'due_date', 'completion_date', 'status', 'progress', 'views', 'createdBy'],
+        attributes: ['id', 'title', 'description', 'cost', 'start_date', 'due_date', 'completion_date', 'status', 'progress', 'views', 'createdBy'],
         include: [
             {
                 model: Tag,
@@ -224,7 +201,6 @@ const getProject = async (req, res) => {
 
     // Add reaction count to project
     project.dataValues.reactionCount = await project.countReactions();
-    project.dataValues.reportCount = await project.countReports();
 
     // Send the project object as a JSON response
     res.status(StatusCodes.OK).json({ project });
@@ -240,6 +216,18 @@ const getProject = async (req, res) => {
 const updateProject = async (req, res) => {
     // Extract the id from the request parameters
     const { id } = req.params;
+    const {
+        title,
+        description,
+        cost,
+        start_date,
+        due_date,
+        completion_date,
+        status,
+        tagsIds,
+        barangayIds,
+        uploadedImages,
+    } = req.body;
 
     // Throw an error if the id is missing or invalid
     ThrowErrorIf(!id || id === ':id' || id === '', 'Id is required', BadRequestError);
@@ -275,6 +263,12 @@ const updateProject = async (req, res) => {
             attributes: ['id', 'name'],
             through: { attributes: [] },
         },
+        {
+            model: Media,
+            as: 'media',
+            attributes: ['id', 'url'],
+            through: { attributes: [] },
+        },
     ];
 
     // Reload the project with the updated data
@@ -303,15 +297,44 @@ const deleteProject = async (req, res) => {
     // Check if the project ID is provided and not empty
     ThrowErrorIf(!id || id === ':id' || id === '', 'Id is required', BadRequestError);
 
-    // Find the project by its ID
-    const project = await Project.findByPk(id);
+    // Find the project by its ID, including associated media and updates with their media
+    const project = await Project.findByPk(id, {
+        include: [
+            {
+                model: Media,
+                as: 'media',
+            },
+            {
+                model: Update,
+                as: 'updates',
+                include: [
+                    {
+                        model: Media,
+                        as: 'media',
+                    },
+                ],
+            },
+        ],
+    });
 
     // Check if the project exists
     ThrowErrorIf(!project, `Project ${ id } not found`, NotFoundError);
 
     checkPermissions(req.user, project.createdBy);
 
-    // Delete the project
+    // Delete the media files associated with the project and its updates from Cloudinary
+    const mediaUrls = [...project.media.map(media => media.url)];
+    const updateMediaUrls = project.updates.flatMap(update => update.media.map(media => media.url));
+    const allMediaUrls = [...mediaUrls, ...updateMediaUrls];
+
+    await Promise.all(
+        allMediaUrls.map(async (url) => {
+            const publicId = url.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(publicId);
+        }),
+    );
+
+    // Delete the project (this will also delete associated records due to cascading delete)
     await project.destroy();
 
     // Return a success message
@@ -336,22 +359,41 @@ const deleteAllProjects = async (req, res) => {
     // Determine the where clause based on the user's role
     const where = req.user.role === 'admin' ? {} : { createdBy: req.user.userId };
 
-    const projects = await Project.findAll({ where });
+    // Find all projects and their associated media and updates with their media
+    const projects = await Project.findAll({
+        where,
+        include: [
+            {
+                model: Media,
+                as: 'media',
+            },
+            {
+                model: Update,
+                as: 'updates',
+                include: [
+                    {
+                        model: Media,
+                        as: 'media',
+                    },
+                ],
+            },
+        ],
+    });
+
+    // Delete the media files associated with the projects and their updates from Cloudinary
+    const allMediaUrls = projects.flatMap(project => [
+        ...project.media.map(media => media.url),
+        ...project.updates.flatMap(update => update.media.map(media => media.url)),
+    ]);
+
     await Promise.all(
-        projects.map(async (project) => {
-            const mediaRecords = await project.getMedia();
-            await Promise.all(
-                mediaRecords.map(async (media) => {
-                    const filePath = path.normalize(
-                        path.join(__dirname, "../", media.url),
-                    );
-                    await fs.promises.unlink(filePath);
-                }),
-            );
+        allMediaUrls.map(async (url) => {
+            const publicId = url.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(publicId);
         }),
     );
 
-    // Delete all projects that match the where clause
+    // Delete all projects that match the where clause (this will also delete associated records due to cascading delete)
     await Project.destroy({ where });
 
     // Return a success message

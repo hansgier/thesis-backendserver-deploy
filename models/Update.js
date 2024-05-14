@@ -1,24 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
-    const ProgressHistory = sequelize.define('progress_history', {
+    const Update = sequelize.define('update', {
             id: {
                 type: DataTypes.UUID,
                 defaultValue: DataTypes.UUIDV4,
                 primaryKey: true,
-            },
-            date: {
-                type: DataTypes.DATE,
-                allowNull: false,
-                defaultValue: DataTypes.NOW,
-                validate: {
-                    isDate: {
-                        args: true,
-                        msg: 'Date must be a valid date',
-                    },
-                    notEmpty: {
-                        args: true,
-                        msg: 'Date is required',
-                    },
-                },
             },
             remarks: {
                 type: DataTypes.TEXT,
@@ -56,5 +41,5 @@ module.exports = (sequelize, DataTypes) => {
         },
     );
 
-    return ProgressHistory;
+    return Update;
 };

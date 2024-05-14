@@ -12,11 +12,12 @@ module.exports = (db) => {
         media: Media,
         comments: Comment,
         reactions: Reaction,
-        reports: Report,
-        progressHistories: ProgressHistory,
+        updates: Update,
         tags: Tag,
         views: View,
         announcements: Announcement,
+        conversations: Conversation,
+        messages: Message,
     } = db;
 
     // User - Token (one-to-many)
@@ -39,9 +40,6 @@ module.exports = (db) => {
     User.hasMany(Reaction, { foreignKey: 'reacted_by', as: 'reactions', onDelete: 'cascade' });
     Reaction.belongsTo(User, { foreignKey: 'reacted_by', as: 'reactor' });
 
-    // User - Report (one-to-many)
-    User.hasMany(Report, { foreignKey: 'reported_by', as: 'reports', onDelete: 'cascade' });
-    Report.belongsTo(User, { foreignKey: 'reported_by', as: 'reporter' });
 
     // User - View (one-to-many)
     User.hasMany(View, { foreignKey: 'user_id', as: 'views', onDelete: 'cascade' });
@@ -71,17 +69,13 @@ module.exports = (db) => {
     Project.hasMany(Media, { foreignKey: 'project_id', as: 'media', onDelete: 'cascade' });
     Media.belongsTo(Project, { foreignKey: 'project_id', as: 'project' });
 
-    // Project - ProgressHistory (one-to-many)
-    Project.hasMany(ProgressHistory, { foreignKey: 'project_id', as: 'progressHistories', onDelete: 'cascade' });
-    ProgressHistory.belongsTo(Project, { foreignKey: 'project_id', as: 'project' });
+    // Project - Update (one-to-many)
+    Project.hasMany(Update, { foreignKey: 'project_id', as: 'updates', onDelete: 'cascade' });
+    Update.belongsTo(Project, { foreignKey: 'project_id', as: 'project' });
 
     // Project - Reaction (one-to-many)
     Project.hasMany(Reaction, { foreignKey: 'project_id', as: 'reactions', onDelete: 'cascade' });
     Reaction.belongsTo(Project, { foreignKey: 'project_id', as: 'project' });
-
-    // Project - Report (one-to-many)
-    Project.hasMany(Report, { foreignKey: 'project_id', as: 'reports' });
-    Report.belongsTo(Project, { foreignKey: 'project_id', as: 'project' });
 
     // Project - View (one-to-many)
     Project.hasMany(View, { foreignKey: 'project_id', as: 'viewers', onDelete: 'cascade' });
@@ -107,19 +101,33 @@ module.exports = (db) => {
     Comment.hasMany(Reaction, { foreignKey: 'comment_id', as: 'reactions', onDelete: 'cascade' });
     Reaction.belongsTo(Comment, { foreignKey: 'comment_id', as: 'comment' });
 
-    // Comment - Report (one-to-many)
-    Comment.hasMany(Report, { foreignKey: 'comment_id', as: 'reports' });
-    Report.belongsTo(Comment, { foreignKey: 'comment_id', as: 'comment' });
-
-    // ProgressHistory - Media (one-to-many)
-    ProgressHistory.hasMany(Media, { foreignKey: 'progressHistory_id', as: 'media', onDelete: 'cascade' });
-    Media.belongsTo(ProgressHistory, { foreignKey: 'progressHistory_id', as: 'progressHistory' });
-
-    // Report - Media (one-to-many)
-    Report.hasMany(Media, { foreignKey: 'report_id', as: 'media', onDelete: 'cascade' });
-    Media.belongsTo(Report, { foreignKey: 'report_id', as: 'report' });
+    // Update - Media (one-to-many)
+    Update.hasMany(Media, { foreignKey: 'update_id', as: 'media', onDelete: 'cascade' });
+    Media.belongsTo(Update, { foreignKey: 'update_id', as: 'update' });
 
     // User - Announcement (one-to-many)
     User.hasMany(Announcement, { foreignKey: 'createdBy', as: 'announcements' });
     Announcement.belongsTo(User, { foreignKey: 'createdBy', as: 'creator' });
+
+    // User - Conversation (many-to-many)
+    User.belongsToMany(Conversation, {
+        through: 'UserConversations',
+        foreignKey: 'user_id',
+        otherKey: 'conversation_id',
+        as: 'conversations',
+    });
+    Conversation.belongsToMany(User, {
+        through: 'UserConversations',
+        foreignKey: 'conversation_id',
+        otherKey: 'user_id',
+        as: 'users',
+    });
+
+    // Conversation - Message (one-to-many)
+    Conversation.hasMany(Message, { foreignKey: 'conversation_id', as: 'messages' });
+    Message.belongsTo(Conversation, { foreignKey: 'conversation_id', as: 'conversation' });
+
+    // User - Message (one-to-many)
+    User.hasMany(Message, { foreignKey: 'sender_id', as: 'sentMessages' });
+    Message.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 };

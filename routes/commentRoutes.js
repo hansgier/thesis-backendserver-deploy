@@ -12,7 +12,6 @@ const {
     deleteReaction,
     editReaction,
 } = require("../controllers/reactionController");
-const { createReport } = require("../controllers/reportController");
 const multer = require("../config/multer");
 
 router.route('/')
@@ -32,10 +31,5 @@ router.route('/:commentId/reactions/:reactionId')
     .get(authenticateUser, getReaction)
     .patch(authenticateUser, editReaction)
     .delete(authenticateUser, deleteReaction);
-
-// ---------------------------REPORTS--------------------------- //
-
-router.route('/:commentId/reports')
-    .post(authenticateUser, multer.array('media', 10), createReport);
 
 module.exports = router;

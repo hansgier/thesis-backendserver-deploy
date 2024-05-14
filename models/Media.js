@@ -50,16 +50,6 @@ module.exports = (sequelize, DataTypes) => {
                     },
                 },
             },
-            recorded_date: {
-                type: DataTypes.DATE,
-                allowNull: true,
-                validate: {
-                    isDate: {
-                        args: true,
-                        msg: 'Recorded date must be a date',
-                    },
-                },
-            },
         },
         {
             timestamps: true,

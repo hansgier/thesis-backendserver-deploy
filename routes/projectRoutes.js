@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const multer = require('../config/multer');
+const upload = require('../config/multer');
 const { authenticateUser, authorizePermission } = require('../middlewares/authentication');
 const {
     addProject,
@@ -21,29 +21,29 @@ const {
     getReaction,
     editReaction,
 } = require("../controllers/reactionController");
-const { createReport } = require("../controllers/reportController");
+
 const {
     getAllMedia,
     updateMedia,
-    deleteAllMedia,
+    deleteAllMedia, deleteUploadedMedia, uploadMedia,
 } = require("../controllers/mediaController");
 const {
-    createProgressHistory,
-    getAllProgressHistory,
-    deleteAllProgressHistory,
-    getProgressHistory,
-    deleteProgressHistory,
-    editProgressHistory,
-} = require("../controllers/progressHistoryController");
+    createUpdate,
+    getAllUpdate,
+    deleteAllUpdate,
+    getUpdate,
+    deleteUpdate,
+    editUpdate,
+} = require("../controllers/updateController");
 
 router.route('/')
     .get(authenticateUser, getAllProjects)
-    .post(authenticateUser, authorizePermission('admin', 'barangay'), multer.array('media', 10), addProject)
+    .post(authenticateUser, authorizePermission('admin', 'barangay'), addProject)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllProjects);
 
 router.route('/:id')
     .get(authenticateUser, getProject)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), updateProject)
+    .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateProject)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteProject);
 
 // ---------------------------COMMENTS--------------------------- //
@@ -66,33 +66,32 @@ router.route('/:projectId/reactions/:reactionId')
     .patch(authenticateUser, editReaction)
     .delete(authenticateUser, deleteReaction);
 
-// ---------------------------REPORTS--------------------------- //
-
-router.route('/:projectId/reports')
-    .post(authenticateUser, multer.array('media', 10), createReport);
-
 // ---------------------------MEDIA--------------------------- //
 
 router.route('/:projectId/media')
+    .post(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), uploadMedia)
     .get(authenticateUser, getAllMedia)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), multer.array('media', 10), updateMedia)
+    .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateMedia)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteUploadedMedia);
+
+
+// ---------------------------UPDATES--------------------------- //
+
+router.route('/:projectId/update')
+    .get(authenticateUser, getAllUpdate)
+    .post(authenticateUser, authorizePermission('admin', 'barangay'), createUpdate)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllUpdate);
+
+router.route('/:projectId/update/:id')
+    .get(authenticateUser, getUpdate)
+    .patch(authenticateUser, authorizePermission('admin', 'barangay'), editUpdate)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteUpdate);
+
+router.route('/:projectId/update/:updateId/media')
+    .get(authenticateUser, getAllMedia)
+    .patch(authenticateUser, authorizePermission('admin', 'barangay'), updateMedia)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia);
 
-// ---------------------------PROGRESS HISTORY--------------------------- //
-
-router.route('/:projectId/progressHistory')
-    .get(authenticateUser, getAllProgressHistory)
-    .post(authenticateUser, authorizePermission('admin', 'barangay'), multer.array('media', 10), createProgressHistory)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllProgressHistory);
-
-router.route('/:projectId/progressHistory/:id')
-    .get(authenticateUser, getProgressHistory)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), editProgressHistory)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteProgressHistory);
-
-router.route('/:projectId/progressHistory/:progressHistoryId/media')
-    .get(authenticateUser, getAllMedia)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), multer.array('media', 10), updateMedia)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia);
 
 module.exports = router;

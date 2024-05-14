@@ -4,6 +4,7 @@ const { media: Media } = require('../../models');
 const { Op } = require("sequelize");
 const { ThrowErrorIf, BadRequestError } = require("../../errors");
 const { paginationControllerFunc } = require("../index");
+const { cloudinary } = require("../../config/cloudinaryConfig");
 
 // -------------------------------------- CREATE -------------------------------------- //
 
@@ -11,11 +12,11 @@ const { paginationControllerFunc } = require("../index");
  * Create media records for the given files.
  * @param {Array} files - Array of files to create media records for.
  * @param {string} projectId - ID of the project associated with the media records.
- * @param {string} progressHistoryId - ID of the progress history associated with the media records.
+ * @param {string} updateId - ID of the update associated with the media records.
  * @param {Object} transaction - Transaction object for database operations.
  * @returns {Promise<Array>} - Promise that resolves to an array of created media records.
  */
-const createMediaRecords = async (files, projectId, progressHistoryId, transaction) => {
+const createMediaRecords = async (files, projectId, updateId, transaction) => {
     // Loop through the files and create media records
     return await Promise.all(
         files.map(async (file) => {
@@ -24,9 +25,8 @@ const createMediaRecords = async (files, projectId, progressHistoryId, transacti
                     url: file.path,
                     mime_type: file.mimetype,
                     size: file.size,
-                    recorded_date: file.filename.split("_")[1],
                     project_id: projectId,
-                    progressHistory_id: progressHistoryId,
+                    update_id: updateId,
                 },
                 { transaction },
             );
@@ -45,11 +45,9 @@ const deleteMediaFiles = async (mediaFiles, transaction) => {
     // Loop through the media files
     await Promise.all(
         mediaFiles.map(async (media) => {
-            // Get the file path
-            const filePath = path.normalize(path.join(__dirname, "../../", media.url));
-
-            // Delete the file from the file system
-            await fs.promises.unlink(filePath);
+            // Delete the file from Cloudinary
+            const publicId = media.url.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(publicId);
 
             // Delete the media record from the database
             await media.destroy({ transaction });
@@ -60,7 +58,7 @@ const deleteMediaFiles = async (mediaFiles, transaction) => {
 // -------------------------------------- DELETE -------------------------------------- //
 
 /**
- * Deletes the uploaded files from the file system.
+ * Deletes the uploaded files from cloudinary
  *
  * @param {Array} files - Array of file objects to be deleted
  */
@@ -68,11 +66,11 @@ const deleteUploadedFiles = async (files) => {
     // Loop through the files and delete them
     await Promise.all(
         files.map(async (file) => {
-            // Get the file path
-            const filePath = path.normalize(path.join(__dirname, "../../", file.path));
+            // Extract the public ID from the file path
+            const publicId = file.path.split("/").pop().split(".")[0];
 
-            // Delete the file from the file system
-            await fs.promises.unlink(filePath);
+            // Delete the file from Cloudinary
+            await cloudinary.uploader.destroy(publicId);
         }),
     );
 };
@@ -95,7 +93,7 @@ function getMediaQuery(query) {
     // Create the base options object with common attributes and ordering
     const options = {
         order: [['createdAt', 'DESC']],
-        attributes: ['id', 'url', 'mime_type', 'size', 'recorded_date', 'createdAt', 'updatedAt'],
+        attributes: ['id', 'url', 'mime_type', 'size', 'createdAt', 'updatedAt'],
     };
 
     // Apply the type filter if it is provided

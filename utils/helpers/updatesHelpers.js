@@ -1,15 +1,15 @@
 const fs = require('fs');
 const path = require('path');
 const { ThrowErrorIf, BadRequestError } = require("../../errors");
-const { media: Media, progressHistories: ProgressHistory, projects: Project } = require("../../models");
+const { media: Media, updates: Update, projects: Project } = require("../../models");
 const { paginationControllerFunc } = require("../index");
 
 function validationInput(body, action) {
-    const { projectId, id, date, remarks, progress } = body;
+    const { projectId, id, remarks, progress } = body;
 
     switch (action) {
         case "create":
-            validateCreate({ projectId, date, remarks, progress });
+            validateCreate({ projectId, remarks, progress });
             break;
         case "deleteAll":
             validateDeleteAll({ projectId });
@@ -18,28 +18,23 @@ function validationInput(body, action) {
             validateDelete({ projectId, id });
             break;
         case "edit":
-            validateEdit({ projectId, id, date, remarks, progress });
+            validateEdit({ projectId, id, remarks, progress });
             break;
         default:
             ThrowErrorIf(true, "Invalid action", BadRequestError);
     }
 }
 
-function validateCreate({ projectId, date, remarks, progress }) {
+function validateCreate({ projectId, remarks, progress }) {
     ThrowErrorIf(
         !projectId || projectId === ':projectId' || projectId === '',
         'Project id is required',
         BadRequestError,
     );
-    ThrowErrorIf(!date, "Date is required", BadRequestError);
+
     ThrowErrorIf(!remarks, "Remarks is required", BadRequestError);
     ThrowErrorIf(!progress, "Progress is required", BadRequestError);
 
-    ThrowErrorIf(
-        typeof date !== "string" || !Date.parse(date),
-        "Invalid date format",
-        BadRequestError,
-    );
     ThrowErrorIf(
         typeof remarks !== "string",
         "Invalid remarks format",
@@ -70,12 +65,12 @@ function validateDelete({ projectId, id }) {
     );
     ThrowErrorIf(
         !id || id === ":id" || id === "",
-        `Progress history id is required`,
+        `Update id is required`,
         BadRequestError,
     );
 }
 
-function validateEdit({ projectId, id, date, remarks, progress }) {
+function validateEdit({ projectId, id, remarks, progress }) {
     // validate edit action
     ThrowErrorIf(
         !projectId || projectId === ":projectId" || projectId === "",
@@ -84,12 +79,7 @@ function validateEdit({ projectId, id, date, remarks, progress }) {
     );
     ThrowErrorIf(
         !id || id === ":id" || id === "",
-        `Progress history id is required`,
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        date && (typeof date !== "string" || !Date.parse(date)),
-        "Invalid date format",
+        `Update id is required`,
         BadRequestError,
     );
     ThrowErrorIf(
@@ -107,15 +97,14 @@ function validateEdit({ projectId, id, date, remarks, progress }) {
 
 // --------------------------------------- CREATE --------------------------------------- //
 
-const createMediaRecord = async (file, progressHistory, project) => {
+const createMediaRecord = async (file, update, project) => {
     // Use the create method to create a new media record
     // Return the new media record
     return await Media.create({
         url: file.path,
         mime_type: file.mimetype,
         size: file.size,
-        recorded_date: file.filename.split("_")[1],
-        progressHistory_id: progressHistory.id,
+        update_id: update.id,
         project_id: project.id,
     });
 };
@@ -131,15 +120,15 @@ const handleError = async (error, files, projectId) => {
     if (error.statusCode === 403) {
         throw error;
     } else if (error.statusCode !== 409) {
-        await ProgressHistory.destroy({ where: { project_id: projectId } });
+        await Update.destroy({ where: { project_id: projectId } });
     }
-    // Throw the error after deleting the files and/or the progress history
+    // Throw the error after deleting the files and/or the update
     throw error;
 };
 
 // --------------------------------------- GET --------------------------------------- //
 
-function getProgressHistoryQuery(query) {
+function getUpdateQuery(query) {
     const { sort, page, limit } = query;
 
     const options = {
@@ -148,18 +137,18 @@ function getProgressHistoryQuery(query) {
             {
                 model: Media,
                 as: 'media',
-                attributes: ['url', 'mime_type', 'size', 'recorded_date'],
+                attributes: ['url', 'mime_type', 'size'],
             },
         ],
     };
 
-    sort && sortProgressHistory(options, sort, ['latest', 'oldest']);
+    sort && sortUpdate(options, sort, ['latest', 'oldest']);
     (page && limit) && paginationControllerFunc(page, limit, options);
 
     return options;
 }
 
-function sortProgressHistory(options, sort, validSort) {
+function sortUpdate(options, sort, validSort) {
     ThrowErrorIf(!validSort.includes(sort), 'Invalid sort query', BadRequestError);
     if (sort === 'latest') {
         options.order = [['createdAt', 'DESC']];
@@ -169,7 +158,7 @@ function sortProgressHistory(options, sort, validSort) {
 }
 
 module.exports = {
-    getProgressHistoryQuery,
+    getUpdateQuery,
     createMediaRecord,
     handleError,
     validationInput,
