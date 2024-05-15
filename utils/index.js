@@ -1,5 +1,4 @@
 const checkPermissions = require("./checkPermissions");
-const comparePassword = require("./comparePassword");
 const createHash = require('./createHash');
 const { tokenExpirations, TAGS, REACTIONS, STATUS } = require("./constants");
 const { attachCookiesToResponse, createJWT, isTokenValid } = require('./jwt');
@@ -9,11 +8,12 @@ const sendResetPassword = require('./sendResetPassword');
 const createHashCrypto = require('./createHashCrypto');
 const sortControllerFunc = require('./sortControllerFunc');
 const paginationControllerFunc = require('./paginationControllerFunc');
+const comparePassword = require('./comparePassword');
 
 module.exports = {
     checkPermissions,
-    comparePassword,
     createHash,
+    comparePassword,
     tokenExpirations,
     TAGS,
     REACTIONS,

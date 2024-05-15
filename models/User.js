@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { ThrowErrorIf, ConflictError } = require("../errors");
 module.exports = (sequelize, DataTypes) => {
     const User = sequelize.define('user', {
@@ -86,9 +86,9 @@ module.exports = (sequelize, DataTypes) => {
         },
     );
 
-    User.prototype.comparePassword = async function (password) {
-        return await bcrypt.compare(password, this.password);
-    };
+    // User.prototype.comparePassword = async function (password) {
+    //     return await bcrypt.compare(password, this.password);
+    // };
 
     User.beforeBulkCreate(async (users) => {
         let userCount = await User.count({});
@@ -106,32 +106,31 @@ module.exports = (sequelize, DataTypes) => {
                 user.role = 'admin';
                 userCount++;
             }
-            const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(user.password, salt);
+            user.password = await bcrypt.hash(user.password, 10);
         }
     });
 
-    User.beforeCreate(async (user) => {
-        if (user.role === 'barangay') {
-            const existingBarangayUser = await User.findOne({
-                where: {
-                    barangay_id: user.barangay_id,
-                    role: 'barangay',
-                },
-            });
-            ThrowErrorIf(existingBarangayUser, 'Barangay has already an existing user', ConflictError);
-        }
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
-        return user;
-    });
+    // User.beforeCreate(async (user) => {
+    //     if (user.role === 'barangay') {
+    //         const existingBarangayUser = await User.findOne({
+    //             where: {
+    //                 barangay_id: user.barangay_id,
+    //                 role: 'barangay',
+    //             },
+    //         });
+    //         ThrowErrorIf(existingBarangayUser, 'Barangay has already an existing user', ConflictError);
+    //     }
+    //     const salt = await bcrypt.genSalt(10);
+    //     user.password = await bcrypt.hash(user.password, 10);
+    //     return user;
+    // });
 
-    User.beforeSave(async (user) => {
-        if (user.changed('password')) {
-            const salt = await bcrypt.genSalt(10);
-            user.password = await bcrypt.hash(user.password, salt);
-        }
-    });
+    // User.beforeSave(async (user) => {
+    //     if (user.changed('password')) {
+    //         const salt = await bcrypt.genSalt(10);
+    //         user.password = await bcrypt.hash(user.password, 10);
+    //     }
+    // });
 
     return User;
 };

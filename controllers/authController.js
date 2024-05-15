@@ -1,13 +1,14 @@
 const { users: User, tokens: Token, barangays: Barangay } = require("../models");
 const { StatusCodes } = require("http-status-codes");
 const { nanoid } = require("nanoid");
-const { UnauthenticatedError, ThrowErrorIf, UnauthorizedError, BadRequestError } = require("../errors");
+const { UnauthenticatedError, ThrowErrorIf, UnauthorizedError, BadRequestError, ConflictError } = require("../errors");
 const {
     createTokenUser,
     attachCookiesToResponse,
     sendResetPassword,
-    createHashCrypto,
+    createHashCrypto, comparePassword,
 } = require("../utils");
+const bcrypt = require("bcryptjs");
 const register = async (req, res) => {
     const { username, password, email, role, barangay_id } = req.body;
     // count the users in database
@@ -17,14 +18,24 @@ const register = async (req, res) => {
     // check if barangay_id exists in the barangay database
     const barangay = await Barangay.findByPk(barangay_id);
     ThrowErrorIf(!barangay, 'Barangay does not exist', BadRequestError);
-    await User.create({
+    if (role === 'barangay') {
+        const existingBarangayUser = await User.findOne({
+            where: {
+                barangay_id: barangay_id,
+                role: 'barangay',
+            },
+        });
+        ThrowErrorIf(existingBarangayUser, 'Barangay has already an existing user', ConflictError);
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const registeredUser = await User.create({
         username: username,
-        password: password,
+        password: hashedPassword,
         email: email,
         role: Role,
         barangay_id: barangay_id,
     });
-    res.status(StatusCodes.CREATED).json({ msg: 'Success! User registered' });
+    res.status(StatusCodes.CREATED).json({ msg: 'Success! User registered', registeredUser });
 };
 
 const login = async (req, res) => {
@@ -37,7 +48,7 @@ const login = async (req, res) => {
     // check if user is found by email
     ThrowErrorIf(!user, 'Invalid Credentials', UnauthenticatedError);
     // check if the user password is correct
-    const isPasswordCorrect = await user.comparePassword(password);
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
     ThrowErrorIf(!isPasswordCorrect, 'Incorrect Password', UnauthenticatedError);
     // create token for the user
     const tokenUser = createTokenUser(user);

@@ -1,4 +1,5 @@
 module.exports = [
+    { name: 'Guest' },
     { name: 'Airport' },
     { name: 'Alegria' },
     { name: 'Alta Vista' },

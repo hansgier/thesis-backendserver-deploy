@@ -1,6 +1,7 @@
 const { users: User } = require('../models');
 const { StatusCodes } = require('http-status-codes');
 const { Op } = require("sequelize");
+const bcrypt = require('bcryptjs');
 const {
     NotFoundError,
     BadRequestError,
@@ -128,19 +129,22 @@ const updateUserPassword = async (req, res) => {
     ThrowErrorIf(!user, `User with id: ${ req.user.id } not found`, NotFoundError);
 
     // Check if the old password matches the user password
-    const isPasswordCorrect = await user.comparePassword(oldPassword);
+    const isPasswordCorrect = await bcrypt.compare(oldPassword, user.password);
     ThrowErrorIf(!isPasswordCorrect, 'Incorrect Password', UnauthenticatedError);
 
     // Check if the user password is already updated
-    const alreadyUpdated = await user.comparePassword(newPassword);
+    const alreadyUpdated = await bcrypt.compare(newPassword, user.password);
     ThrowErrorIf(
         alreadyUpdated,
         'You have already updated your password',
         ConflictError,
     );
 
+    // Hash the new password before saving
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
     // Update the user password
-    user.password = newPassword;
+    user.password = hashedNewPassword;
     await user.save();
 
     res.status(StatusCodes.OK).send({ msg: 'Password updated successfully' });
