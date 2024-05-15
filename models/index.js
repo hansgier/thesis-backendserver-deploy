@@ -28,7 +28,6 @@ db.media = require('./Media')(sequelize, DataTypes);
 db.comments = require('./Comment')(sequelize, DataTypes);
 db.updates = require('./Update')(sequelize, DataTypes);
 db.reactions = require('./Reaction')(sequelize, DataTypes);
-db.tokens = require('./Token')(sequelize, DataTypes);
 db.tags = require('./Tag')(sequelize, DataTypes);
 db.views = require('./View')(sequelize, DataTypes);
 db.announcements = require('./Announcement')(sequelize, DataTypes);

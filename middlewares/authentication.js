@@ -9,45 +9,7 @@ const { UnauthenticatedError, UnauthorizedError, ThrowErrorIf } = require("../er
  * @param {Function} next - next function
  */
 const authenticateUser = async (req, res, next) => {
-    // Extract refresh and access tokens from cookies
-    const { refreshToken, accessToken } = req.signedCookies;
-    try {
-        // If access token exists, validate and attach user to request
-        if (accessToken) {
-            const payload = isTokenValid(accessToken);
-            req.user = payload.user;
-            return next();
-        }
-
-        // If access token doesn't exist, validate refresh token
-        const payload = isTokenValid(refreshToken);
-
-        // Find user's refresh token in database
-        const existingToken = await Token.findOne({
-            where: {
-                user_id: payload.user.id,
-                refreshToken: payload.refreshToken,
-            },
-        });
-
-        // Throw error if token is invalid
-        ThrowErrorIf(!existingToken || !existingToken?.isValid,
-            'Authentication invalid', UnauthenticatedError);
-
-        // Attach cookies to response
-        attachCookiesToResponse({
-            res,
-            user: payload.user,
-            refreshToken: payload.refreshToken,
-        });
-
-        // Attach user to request
-        req.user = payload.user;
-        next();
-    } catch (e) {
-        // Throw error if authentication is invalid
-        throw new UnauthenticatedError('Authentication invalid');
-    }
+    next();
 };
 
 /**

@@ -6,7 +6,6 @@ module.exports = (db) => {
     // Destructure models from db
     const {
         users: User,
-        tokens: Token,
         barangays: Barangay,
         projects: Project,
         media: Media,
@@ -19,11 +18,7 @@ module.exports = (db) => {
         conversations: Conversation,
         messages: Message,
     } = db;
-
-    // User - Token (one-to-many)
-    User.hasMany(Token, { foreignKey: 'user_id', as: 'tokens' });
-    Token.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
-
+    
     // User - Barangay (many-to-one)
     User.belongsTo(Barangay, { foreignKey: 'barangay_id', as: 'barangay' });
     Barangay.hasMany(User, { foreignKey: 'barangay_id', as: 'users' });

@@ -101,7 +101,6 @@ const updateUser = async (req, res) => {
 
     // Create a new token for the user and attach it to cookies
     const tokenUser = createTokenUser(user);
-    attachCookiesToResponse({ res, user: tokenUser });
 
     res.status(StatusCodes.OK).send({ msg: 'User updated successfully', user: tokenUser });
 };

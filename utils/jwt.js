@@ -19,40 +19,8 @@ const createJWT = ({ payload }) => {
  */
 const isTokenValid = (token) => jwt.verify(token, process.env.JWT_SECRET);
 
-/**
- * Attach cookies to the response object.
- *
- * @param {Object} options - The options object.
- * @param {Object} options.res - The response object.
- * @param {Object} options.user - The user object.
- * @param {string} options.refreshToken - The refresh token.
- */
-const attachCookiesToResponse = ({ res, user, refreshToken }) => {
-    // Create access token JWT
-    const accessTokenJWT = createJWT({ payload: { user } });
-
-    // Create refresh token JWT
-    const refreshTokenJWT = createJWT({ payload: { user, refreshToken } });
-
-    // Set access token cookie
-    res.cookie('accessToken', accessTokenJWT, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        signed: true,
-        maxAge: tokenExpirations.ACCESS_TOKEN_EXPIRY,
-    });
-
-    // Set refresh token cookie
-    res.cookie('refreshToken', refreshTokenJWT, {
-        httpOnly: true,
-        expires: tokenExpirations.REFRESH_TOKEN_EXPIRY,
-        secure: process.env.NODE_ENV === 'production',
-        signed: true,
-    });
-};
 
 module.exports = {
     createJWT,
     isTokenValid,
-    attachCookiesToResponse,
 };

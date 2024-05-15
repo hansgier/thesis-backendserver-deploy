@@ -66,20 +66,6 @@ module.exports = (sequelize, DataTypes) => {
                     },
                 },
             },
-            passwordToken: {
-                type: DataTypes.STRING,
-                allowNull: true,
-            },
-            passwordTokenExpiry: {
-                type: DataTypes.DATE,
-                allowNull: true,
-                validate: {
-                    isDate: {
-                        args: true,
-                        msg: 'Password token expiry must be a valid date',
-                    },
-                },
-            },
         },
         {
             timestamps: true,

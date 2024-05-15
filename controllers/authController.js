@@ -50,57 +50,12 @@ const login = async (req, res) => {
     // check if the user password is correct
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     ThrowErrorIf(!isPasswordCorrect, 'Incorrect Password', UnauthenticatedError);
-    // create token for the user
-    const tokenUser = createTokenUser(user);
-    let refreshToken;
-    // check if the user has an existing token stored in the database
-    const existingToken = await Token.findOne({
-        where: {
-            user_id: user.id,
-        },
-    });
-    if (existingToken) {
-        // check if the token is still valid
-        const { isValid } = existingToken;
-        ThrowErrorIf(!isValid, 'Invalid credentials', UnauthenticatedError);
-        // refresh the token expiration and attach to cookies
-        refreshToken = existingToken.refreshToken;
-        attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-        res.status(StatusCodes.OK).json({ msg: 'Success! You are logged in', user: tokenUser });
-        return;
-    }
-    // create new refresh and access token
-    refreshToken = nanoid(36);
-    const userAgent = req.headers['user-agent'];
-    const ip = req.ip;
-    const userToken = { refreshToken, ip, userAgent, user_id: user.id };
-    await Token.create(userToken);
-    // attach to cookies
-    attachCookiesToResponse({ res, user: tokenUser, refreshToken });
-    res.status(StatusCodes.OK).json({ msg: 'Success! You are logged in', user: tokenUser });
+
+    res.status(StatusCodes.OK).json({ msg: 'Success! You are logged in', user });
 };
 
 const logout = async (req, res) => {
-    // delete the token of the user
-    await Token.destroy({
-        where: {
-            user_id: req.user.userId,
-        },
-    });
-    // remove the cookies by expiring the tokens immediately
-    res.cookie('accessToken', 'logout', {
-        httpOnly: true,
-        expires: new Date(Date.now()),
-        secure: process.env.NODE_ENV === 'production',
-        signed: true,
-    });
-    res.cookie('refreshToken', 'logout', {
-        httpOnly: true,
-        expires: new Date(Date.now()),
-        secure: process.env.NODE_ENV === 'production',
-        signed: true,
-    });
-    res.status(StatusCodes.OK).json({ msg: 'Success! You are logged out' });
+
 };
 
 const forgotPassword = async (req, res) => {
