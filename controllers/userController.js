@@ -58,9 +58,10 @@ const getUser = async (req, res) => {
 const showCurrentUser = async (req, res) => {
     // Throw an error if the user is not found
     ThrowErrorIf(!req.user, 'User not found', UnauthenticatedError);
+    const user = await User.findByPk(req.user.userId);
 
     // Send the user object as a JSON response
-    res.status(StatusCodes.OK).json({ user: req.user });
+    res.status(StatusCodes.OK).json({ user });
 };
 
 /**
