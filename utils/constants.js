@@ -15,7 +15,7 @@ const TAGS = [
 ];
 
 const STATUS = [
-    'not_started',
+    'planned',
     'ongoing',
     'on_hold',
     'completed',

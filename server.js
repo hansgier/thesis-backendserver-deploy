@@ -7,7 +7,7 @@ require('express-async-errors');
 const allowedOrigins = [
     "localhost:5173",
     "localhost:5000",
-    "https://ormocpis.vercel.app",
+    "ormocpis.vercel.app",
 ];
 
 // ------------------- IMPORTS ------------------- //
@@ -20,6 +20,10 @@ const corsOptions = {
             callback(new Error('Not allowed by CORS'));
         }
     },
+    credentials: true,
+    optionsSuccessStatus: 200,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cookie', 'Connection','User-Agent','Host', 'Content-Length','Accept-Encoding'],
 };
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
