@@ -51,7 +51,7 @@ const chatRouter = require('./routes/chatRoutes');
 
 // ------------------- MIDDLEWARES ------------------- //
 
-app.use(cors(corsOptions));
+app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(cookieParser(process.env.JWT_SECRET));

@@ -120,6 +120,7 @@ const validateAndUpdateProject = async (project, projectData, user) => {
         [PROJECT_DATA_KEYS.due_date]: due_date,
         [PROJECT_DATA_KEYS.completion_date]: completion_date,
         [PROJECT_DATA_KEYS.status]: status,
+        [PROJECT_DATA_KEYS.funding_source]: funding_source,
         [PROJECT_DATA_KEYS.barangayIds]: barangayIds,
         [PROJECT_DATA_KEYS.tagsIds]: tagsIds,
     } = projectData;
@@ -267,6 +268,7 @@ const compareInputValues = async (project, projectData) => {
         start_date,
         due_date,
         completion_date,
+        funding_source,
         status,
     } = projectData;
 
@@ -280,6 +282,7 @@ const compareInputValues = async (project, projectData) => {
         due_date: currentDueDate,
         completion_date: currentCompletionDate,
         status: currentStatus,
+        funding_source: currentFundingSource,
     } = project;
 
     // Compare the input values with the current values
@@ -292,6 +295,11 @@ const compareInputValues = async (project, projectData) => {
     ThrowErrorIf(
         description === currentDescription,
         'Description is the same as the current value',
+        BadRequestError,
+    );
+    ThrowErrorIf(
+        funding_source === currentFundingSource,
+        'Funding source is the same as the current value',
         BadRequestError,
     );
     ThrowErrorIf(

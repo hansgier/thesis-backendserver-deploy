@@ -38,6 +38,7 @@ const addProject = async (req, res) => {
         due_date,
         completion_date,
         status,
+        funding_source,
         tagsIds,
         barangayIds,
         uploadedImages,
@@ -56,6 +57,7 @@ const addProject = async (req, res) => {
             due_date,
             completion_date: !completion_date ? null : completion_date,
             status,
+            funding_source,
             createdBy: user.id,
         };
 
@@ -223,6 +225,7 @@ const updateProject = async (req, res) => {
         start_date,
         due_date,
         completion_date,
+        funding_source,
         status,
         tagsIds,
         barangayIds,
