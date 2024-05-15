@@ -75,7 +75,7 @@ const showCurrentUser = async (req, res) => {
  * @throws {UnauthenticatedError} If the old password is incorrect.
  */
 const updateUser = async (req, res) => {
-    const { username, email, oldPassword, newPassword } = req.body;
+    const { username, email, oldPassword, newPassword, barangay_id } = req.body;
 
     // Check if at least one field is provided
     ThrowErrorIf(!username && !email && !oldPassword && !newPassword, 'At least one field (username, email, or password) must be provided', BadRequestError);
@@ -101,6 +101,7 @@ const updateUser = async (req, res) => {
         // Update the user's information
         user.username = username || user.username;
         user.email = email || user.email;
+        user.barangay_id = barangay_id || user.barangay_id;
     }
 
     // Check if password needs to be updated
