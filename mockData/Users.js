@@ -21,7 +21,7 @@ module.exports = [
     },
     {
         username: "bnice9d",
-        password: "fU1<#~&",
+        password: "fU1<#3&",
         email: "eschule9d@java.com",
         role: "resident",
         barangay_id: 29,
@@ -35,7 +35,7 @@ module.exports = [
     },
     {
         username: "vmcphelimy9f",
-        password: "mC7+\"B$l_P5",
+        password: "mC7+70B$l_P5",
         email: "sraynard9f@zdnet.com",
         role: "resident",
         barangay_id: 66,
@@ -56,7 +56,7 @@ module.exports = [
     },
     {
         username: "pbinner9i",
-        password: "xC4\\3v6",
+        password: "xC4at3v6",
         email: "mmerrin9i@marketwatch.com",
         role: "resident",
         barangay_id: 58,
@@ -70,7 +70,7 @@ module.exports = [
     },
     {
         username: "kdrinkwater9k",
-        password: "lA3~uS0RWQ",
+        password: "lA33uS0RWQ",
         email: "bkilborn9k@storify.com",
         role: "resident",
         barangay_id: 17,
@@ -98,7 +98,7 @@ module.exports = [
     },
     {
         username: "crosina9o",
-        password: "qJ2_wo\"R",
+        password: "qJ2_wo70R",
         email: "hwinckworth9o@hubpages.com",
         role: "resident",
         barangay_id: 103,
@@ -112,7 +112,7 @@ module.exports = [
     },
     {
         username: "tosan9q",
-        password: "vY4}nl\\,",
+        password: "vY4}nlat,",
         email: "mpaynton9q@upenn.edu",
         role: "resident",
         barangay_id: 96,
@@ -126,7 +126,7 @@ module.exports = [
     },
     {
         username: "nroo9s",
-        password: "cA6\\IlPD`%>",
+        password: "cA6atIlPD`%>",
         email: "dverney9s@epa.gov",
         role: "resident",
         barangay_id: 108,
@@ -147,7 +147,7 @@ module.exports = [
     },
     {
         username: "stortoise9v",
-        password: "xP0$F+\"h5Du",
+        password: "xP0$F+70h5Du",
         email: "bbeade9v@rambler.ru",
         role: "resident",
         barangay_id: 39,
@@ -224,14 +224,14 @@ module.exports = [
     },
     {
         username: "hkika6",
-        password: "jS2~O3",
+        password: "jS23O3",
         email: "dcuerdalla6@unesco.org",
         role: "resident",
         barangay_id: 21,
     },
     {
         username: "lguerrazzia7",
-        password: "xG3'ymm#(~7",
+        password: "xG3'ymm#(37",
         email: "galdrena7@ning.com",
         role: "resident",
         barangay_id: 93,
@@ -245,7 +245,7 @@ module.exports = [
     },
     {
         username: "mvolkesa9",
-        password: "hA9.0=/~Y",
+        password: "hA9.0=/3Y",
         email: "rfidocka9@accuweather.com",
         role: "resident",
         barangay_id: 47,
@@ -259,21 +259,21 @@ module.exports = [
     },
     {
         username: "astylesab",
-        password: "zD0\\k2_",
+        password: "zD0atk2_",
         email: "dmeugensab@instagram.com",
         role: "resident",
         barangay_id: 57,
     },
     {
         username: "bmeakerac",
-        password: "pG3\"vTSW9{`o",
+        password: "pG370vTSW90o",
         email: "hbarrieac@oaic.gov.au",
         role: "resident",
         barangay_id: 5,
     },
     {
         username: "hsiveterad",
-        password: "kR0`+mHMj\\X",
+        password: "kR0`+mHMjatX",
         email: "rpervewad@bandcamp.com",
         role: "resident",
         barangay_id: 74,
@@ -287,7 +287,7 @@ module.exports = [
     },
     {
         username: "pdodimeadaf",
-        password: "dD1\"x.",
+        password: "dD170x.",
         email: "hgeertsenaf@ft.com",
         role: "resident",
         barangay_id: 105,
@@ -301,7 +301,7 @@ module.exports = [
     },
     {
         username: "fsummertonah",
-        password: "nL5/`G~",
+        password: "nL5/`G3",
         email: "cwhittingtonah@sina.com.cn",
         role: "resident",
         barangay_id: 30,
@@ -315,21 +315,21 @@ module.exports = [
     },
     {
         username: "gthomassonaj",
-        password: "uO4~<d\"tP",
+        password: "uO43<d70tP",
         email: "fbonteinaj@purevolume.com",
         role: "resident",
         barangay_id: 74,
     },
     {
         username: "smcmackinak",
-        password: "wK5~)z",
+        password: "wK53)z",
         email: "dfynnak@blog.com",
         role: "resident",
         barangay_id: 6,
     },
     {
         username: "cmottinellial",
-        password: "qR4@E\"$",
+        password: "qR4@E70$",
         email: "rskittrellal@linkedin.com",
         role: "resident",
         barangay_id: 24,
@@ -357,7 +357,7 @@ module.exports = [
     },
     {
         username: "mpickworthap",
-        password: "mF2+{uw3vZ,}",
+        password: "mF2+0uw3vZ,0",
         email: "lwheatlandap@wiley.com",
         role: "resident",
         barangay_id: 15,
@@ -385,7 +385,7 @@ module.exports = [
     },
     {
         username: "ncornellat",
-        password: "uE6+1{q~=a",
+        password: "uE6+1{q3=a",
         email: "tjoslowat@trellian.com",
         role: "resident",
         barangay_id: 87,
@@ -455,14 +455,14 @@ module.exports = [
     },
     {
         username: "bpeplay9",
-        password: "oL8?529~@Oh",
+        password: "oL8?5293@Oh",
         email: "dcurror9@google.it",
         role: "barangay",
         barangay_id: 10,
     },
     {
         username: "nfishendena",
-        password: "eB7~$n/QL",
+        password: "eB73$n/QL",
         email: "jchampea@reuters.com",
         role: "barangay",
         barangay_id: 11,
@@ -511,7 +511,7 @@ module.exports = [
     },
     {
         username: "byanukh",
-        password: "qE9>m9\"V2y",
+        password: "qE9>m970V2y",
         email: "edhenninh@patch.com",
         role: "barangay",
         barangay_id: 18,
@@ -539,7 +539,7 @@ module.exports = [
     },
     {
         username: "cdebiaggil",
-        password: "iF0>7A\\3`k\\",
+        password: "iF0>7Aat3`kat",
         email: "dperigol@umn.edu",
         role: "barangay",
         barangay_id: 22,
@@ -581,7 +581,7 @@ module.exports = [
     },
     {
         username: "eburetr",
-        password: "uA4~7R4g",
+        password: "uA437R4g",
         email: "belkinr@sina.com.cn",
         role: "barangay",
         barangay_id: 28,
@@ -637,7 +637,7 @@ module.exports = [
     },
     {
         username: "swortsz",
-        password: "kZ6~Uiw{",
+        password: "kZ63Uiw{",
         email: "sbeavorsz@answers.com",
         role: "barangay",
         barangay_id: 36,
@@ -651,7 +651,7 @@ module.exports = [
     },
     {
         username: "sparcells11",
-        password: "tW2.L!mB&h\"",
+        password: "tW2.L!mB&h7"",
         email: "alemm11@ovh.net",
         role: "barangay",
         barangay_id: 38,
@@ -665,7 +665,7 @@ module.exports = [
     },
     {
         username: "mspacey13",
-        password: "sO0__VU}R",
+        password: "sO000VU}R",
         email: "rfearnehough13@mozilla.org",
         role: "barangay",
         barangay_id: 40,
@@ -686,14 +686,14 @@ module.exports = [
     },
     {
         username: "adonnachie16",
-        password: "jH9~3&Y'%9=D",
+        password: "jH933&Y'%9=D",
         email: "dmushawe16@bizjournals.com",
         role: "barangay",
         barangay_id: 43,
     },
     {
         username: "mconws17",
-        password: "pS3\"xJ)jE5y",
+        password: "pS370xJ)jE5y",
         email: "nkeeton17@exblog.jp",
         role: "barangay",
         barangay_id: 44,
@@ -728,14 +728,14 @@ module.exports = [
     },
     {
         username: "alille1c",
-        password: "nJ7}e~R\"",
+        password: "nJ7}e3R7"",
         email: "agorger1c@storify.com",
         role: "barangay",
         barangay_id: 49,
     },
     {
         username: "lbamford1d",
-        password: "oE9<\\SOE",
+        password: "oE9<atSOE",
         email: "fassiter1d@nymag.com",
         role: "barangay",
         barangay_id: 50,
@@ -763,7 +763,7 @@ module.exports = [
     },
     {
         username: "bstreight1h",
-        password: "xE4\"}zwZ",
+        password: "xE470}zwZ",
         email: "ksibbson1h@ning.com",
         role: "barangay",
         barangay_id: 54,
@@ -791,7 +791,7 @@ module.exports = [
     },
     {
         username: "obeetham1l",
-        password: "wZ6*T|0p~s\\N",
+        password: "wZ6*T|0p3satN",
         email: "hmatoshin1l@elpais.com",
         role: "barangay",
         barangay_id: 58,
@@ -868,7 +868,7 @@ module.exports = [
     },
     {
         username: "chaldin1w",
-        password: "uC5)\"mojV6!Y",
+        password: "uC5)70mojV6!Y",
         email: "cbleier1w@nature.com",
         role: "barangay",
         barangay_id: 69,
@@ -959,7 +959,7 @@ module.exports = [
     },
     {
         username: "ckineton29",
-        password: "yP0}pE`~urd",
+        password: "yP0}pE`3urd",
         email: "okinningley29@booking.com",
         role: "barangay",
         barangay_id: 82,
@@ -987,7 +987,7 @@ module.exports = [
     },
     {
         username: "estollwerck2d",
-        password: "tJ0{GcoIc0\"h",
+        password: "tJ0{GcoIc07"h",
         email: "pdibernardo2d@ehow.com",
         role: "barangay",
         barangay_id: 86,
@@ -1001,7 +1001,7 @@ module.exports = [
     },
     {
         username: "zhudspeth2f",
-        password: "sJ4{O$%F\\#W`",
+        password: "sJ4{O$%Fat#W`",
         email: "cbatchelder2f@hp.com",
         role: "barangay",
         barangay_id: 88,
@@ -1092,7 +1092,7 @@ module.exports = [
     },
     {
         username: "dweigh2s",
-        password: "rS5/r\"~0",
+        password: "rS5/r7"30",
         email: "sfasham2s@tinypic.com",
         role: "barangay",
         barangay_id: 101,
@@ -1113,7 +1113,7 @@ module.exports = [
     },
     {
         username: "sbree2v",
-        password: "xK5~A,",
+        password: "xK53A,",
         email: "chillett2v@chron.com",
         role: "barangay",
         barangay_id: 104,
@@ -1134,14 +1134,14 @@ module.exports = [
     },
     {
         username: "femney2y",
-        password: "tL9|\\.C36V",
+        password: "tL9|at.C36V",
         email: "sdunniom2y@guardian.co.uk",
         role: "barangay",
         barangay_id: 107,
     },
     {
         username: "aitshak2z",
-        password: "qF6@\\)IlAio",
+        password: "qF6@at)IlAio",
         email: "aabsolem2z@typepad.com",
         role: "barangay",
         barangay_id: 108,

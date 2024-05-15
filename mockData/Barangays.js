@@ -1,5 +1,4 @@
 module.exports = [
-    { name: 'Guest' },
     { name: 'Airport' },
     { name: 'Alegria' },
     { name: 'Alta Vista' },
@@ -110,4 +109,5 @@ module.exports = [
     { name: 'Tambulilid' },
     { name: 'Tongonan' },
     { name: 'Valencia' },
+    { name: 'Guest' },
 ];
