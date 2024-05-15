@@ -7,7 +7,6 @@ const {
     showCurrentUser,
     updateUser,
     deleteUser,
-    updateUserPassword,
 } = require('../controllers/userController');
 
 router.route('/')
@@ -19,9 +18,6 @@ router.route('/me')
 
 router.route('/update-user')
     .patch(authenticateUser, updateUser);
-
-router.route('/update-user-password')
-    .patch(authenticateUser, updateUserPassword);
 
 router.route('/:id')
     .get(authenticateUser, authorizePermissions, getUser)

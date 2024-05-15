@@ -1,6 +1,6 @@
-const { tokens: Token, users: User } = require('../models');
+const { users: User } = require('../models');
 const { isTokenValid, attachCookiesToResponse } = require('../utils');
-const { UnauthenticatedError, UnauthorizedError, ThrowErrorIf } = require("../errors");
+const { UnauthenticatedError, UnauthorizedError, ThrowErrorIf, NotFoundError } = require("../errors");
 
 /**
  * Middleware function to authenticate user
@@ -9,6 +9,17 @@ const { UnauthenticatedError, UnauthorizedError, ThrowErrorIf } = require("../er
  * @param {Function} next - next function
  */
 const authenticateUser = async (req, res, next) => {
+    const userId = req.header('userId'); // Assuming userId is sent in the request header
+    ThrowErrorIf(!userId, 'User ID is required for authentication', UnauthenticatedError);
+
+    const user = await User.findByPk(userId);
+    ThrowErrorIf(!user, 'User not found', UnauthenticatedError);
+
+    req.user = {
+        name: user.username,
+        userId: user.id,
+        role: user.role,
+    };
     next();
 };
 
