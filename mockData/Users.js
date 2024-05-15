@@ -651,7 +651,7 @@ module.exports = [
     },
     {
         username: "sparcells11",
-        password: "tW2.L!mB&h7"",
+        password: "tW2.L!mB&h7",
         email: "alemm11@ovh.net",
         role: "barangay",
         barangay_id: 38,
@@ -728,7 +728,7 @@ module.exports = [
     },
     {
         username: "alille1c",
-        password: "nJ7}e3R7"",
+        password: "nJ7}e3R7",
         email: "agorger1c@storify.com",
         role: "barangay",
         barangay_id: 49,
