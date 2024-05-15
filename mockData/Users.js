@@ -987,7 +987,7 @@ module.exports = [
     },
     {
         username: "estollwerck2d",
-        password: "tJ0{GcoIc07"h",
+        password: "tJ0{GcoIc07h",
         email: "pdibernardo2d@ehow.com",
         role: "barangay",
         barangay_id: 86,
