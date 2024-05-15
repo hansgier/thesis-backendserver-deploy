@@ -77,9 +77,6 @@ const showCurrentUser = async (req, res) => {
 const updateUser = async (req, res) => {
     const { username, email, oldPassword, newPassword, barangay_id } = req.body;
 
-    // Check if at least one field is provided
-    ThrowErrorIf(!username && !email && !oldPassword && !newPassword, 'At least one field (username, email, or password) must be provided', BadRequestError);
-
     // Find the user by ID
     const user = await User.findByPk(req.user.userId);
     ThrowErrorIf(!user, `User with id: ${ req.user.userId } not found`, NotFoundError);
