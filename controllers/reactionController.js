@@ -48,9 +48,8 @@ const getAllReactions = async (req, res) => {
 const getReaction = async (req, res) => {
     const { projectId } = req.params;
 
-    const reaction = await Reaction.findOne({
+    const reaction = await Reaction.findAll({
         where: {
-            reacted_by: req.user.userId,
             project_id: projectId,
         },
     });
