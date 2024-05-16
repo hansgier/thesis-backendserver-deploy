@@ -10,7 +10,7 @@ const {
 } = require('../controllers/userController');
 
 router.route('/')
-    .get(authenticateUser, authorizePermissions, getAllUsers)
+    .get(authenticateUser, getAllUsers)
     .delete(authenticateUser, authorizePermissions, deleteAllUsers);
 
 router.route('/me')
