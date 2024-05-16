@@ -109,25 +109,61 @@ const addProject = async (req, res) => {
 const getAllProjects = async (req, res) => {
     // Get the project query options based on the request query parameters
     const options = getProjectQuery(req.query);
-
     const count = await Project.count();
+
     // Retrieve all projects based on the options
     const projects = await Project.findAll(options);
 
-    // Add comment, reaction count to each project
+    // Create an array to store the modified project data
+    const modifiedProjects = [];
+
+    // Loop through each project
     for (const project of projects) {
-        project.dataValues.reactionCount = await project.countReactions();
-        project.dataValues.commentCount = await project.countComments();
+        // Get the reaction counts for the project
+        const reactionCounts = await Reaction.findAll({
+            where: {
+                project_id: project.id,
+            },
+            attributes: [
+                'reaction_type',
+                [sequelize.fn('COUNT', sequelize.col('reaction_type')), 'count'],
+            ],
+            group: ['reaction_type'],
+        });
+
+        // Calculate the likes and dislikes
+        const likes = reactionCounts.find(r => r.reaction_type === 'like')?.count || 0;
+        const dislikes = reactionCounts.find(r => r.reaction_type === 'dislike')?.count || 0;
+
+        // Get the comment count for the project
+        const commentCount = await project.countComments();
+
+        // Create a new object with the modified project data
+        const modifiedProject = {
+            ...project.toJSON(),
+            reactions: { likes, dislikes },
+            reactionCount: likes + dislikes,
+            commentCount,
+        };
+
+        // Remove the unnecessary properties
+        delete modifiedProject.comments;
+        delete modifiedProject.reactions;
+
+        // Add the modified project to the array
+        modifiedProjects.push(modifiedProject);
     }
 
     // If no projects found, return a response with a message
-    if (projects.length < 1) return res.status(StatusCodes.OK).json({ msg: 'No projects found' });
+    if (modifiedProjects.length < 1) {
+        return res.status(StatusCodes.OK).json({ msg: 'No projects found' });
+    }
 
-    // Return a response with the count of projects and the projects themselves
-    else return res.status(StatusCodes.OK).json({
+    // Return a response with the count of projects and the modified projects
+    return res.status(StatusCodes.OK).json({
         totalCount: count,
-        count: projects.length,
-        projects,
+        count: modifiedProjects.length,
+        projects: modifiedProjects,
     });
 };
 
