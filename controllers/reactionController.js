@@ -21,9 +21,6 @@ const createReaction = async (req, res) => {
     const { reaction_type, reactionTarget } = req.body;
     const { projectId, commentId } = req.params;
 
-    // Validate the input parameters
-    validateInput(reactionTarget, projectId, commentId);
-
     // Find the user who is creating the reaction
     const user = await User.findByPk(req.user.userId);
     ThrowErrorIf(!user, 'User not found', NotFoundError);
@@ -49,10 +46,14 @@ const getAllReactions = async (req, res) => {
 };
 
 const getReaction = async (req, res) => {
-    const { id } = req.params;
-    ThrowErrorIf(!id || id === ':id' || id === '', 'Reaction id is required', BadRequestError);
+    const { projectId } = req.params;
 
-    const reaction = await Reaction.findByPk(id);
+    const reaction = await Reaction.findOne({
+        where: {
+            reacted_by: req.user.userId,
+            project_id: projectId,
+        },
+    });
     ThrowErrorIf(!reaction, 'Reaction not found', NotFoundError);
 
     res.status(StatusCodes.OK).json({ reaction });
@@ -63,9 +64,6 @@ const editReaction = async (req, res) => {
     const { reactionType, reactionTarget } = req.body;
     const { projectId, commentId, reactionId } = req.params;
 
-    // Validate the input parameters
-    validateInputForEdit(reactionTarget, projectId, commentId, reactionId);
-
     // Find the user who is editing the reaction
     const user = await User.findByPk(req.user.userId);
     ThrowErrorIf(!user, 'User not found', NotFoundError);
@@ -74,9 +72,6 @@ const editReaction = async (req, res) => {
     switch (reactionTarget) {
         case REACTION_TARGETS.PROJECT:
             await editProjectReaction(user, projectId, reactionId, reactionType, res);
-            break;
-        case REACTION_TARGETS.COMMENT:
-            await editCommentReaction(user, commentId, reactionId, reactionType, res);
             break;
         default:
             throw new BadRequestError('Invalid reactionTarget');
@@ -99,9 +94,6 @@ const deleteReaction = async (req, res) => {
     switch (reactionTarget) {
         case REACTION_TARGETS.PROJECT:
             await deleteProjectReaction(user, projectId, reactionId, res);
-            break;
-        case REACTION_TARGETS.COMMENT:
-            await deleteCommentReaction(user, commentId, reactionId, res);
             break;
         default:
             throw new BadRequestError('Invalid reactionTarget');

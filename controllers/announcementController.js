@@ -52,7 +52,6 @@ const editAnnouncement = async (req, res) => {
         },
     });
     ThrowErrorIf(!announcement, 'Announcement not found', NotFoundError);
-    ThrowErrorIf(content === announcement.content, 'Content is the same as the previous', ConflictError);
 
     checkPermissions(req.user, announcement.createdBy);
 

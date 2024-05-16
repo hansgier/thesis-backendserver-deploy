@@ -57,7 +57,7 @@ const addBarangay = async (req, res) => {
     const { name } = req.body;
 
     // Create a new barangay with the given name and set hasUser to false
-    const barangay = await Barangay.create({ name, hasUser: false });
+    const barangay = await Barangay.create({ name });
 
     // Send a response with the added barangay and a message
     res.status(StatusCodes.CREATED).json({
@@ -149,9 +149,6 @@ const updateBarangay = async (req, res) => {
     // Check if the barangay exists
     const barangay = await Barangay.findByPk(id);
     ThrowErrorIf(!barangay, 'Barangay not found', NotFoundError);
-
-    // Check if the barangay is already updated
-    ThrowErrorIf(barangay.name === name, 'Barangay already updated', ConflictError);
 
     // Update the barangay name
     await Barangay.update({ name: name }, {

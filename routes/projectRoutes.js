@@ -68,8 +68,10 @@ router.route('/:projectId/reactions/:reactionId')
 
 // ---------------------------MEDIA--------------------------- //
 
+router.route('/media')
+    .post(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), uploadMedia);
+
 router.route('/:projectId/media')
-    .post(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), uploadMedia)
     .get(authenticateUser, getAllMedia)
     .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateMedia)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia)
@@ -90,7 +92,7 @@ router.route('/:projectId/update/:id')
 
 router.route('/:projectId/update/:updateId/media')
     .get(authenticateUser, getAllMedia)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), updateMedia)
+    .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateMedia)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia);
 
 

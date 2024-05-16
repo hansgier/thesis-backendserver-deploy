@@ -103,10 +103,6 @@ const updateUser = async (req, res) => {
 
     // Check if password needs to be updated
     if (oldPassword && newPassword) {
-        // Check if the new password is the same as the old one
-        const alreadyUpdated = await bcrypt.compare(newPassword, user.password);
-        ThrowErrorIf(alreadyUpdated, 'You have already updated your password', ConflictError);
-
         // Hash the new password before saving
         user.password = await bcrypt.hash(newPassword, 10);
     }

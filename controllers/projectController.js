@@ -10,6 +10,7 @@ const {
     comments: Comment,
     media: Media,
     updates: Update,
+    reactions: Reaction,
 } = require('../models');
 const {
     ThrowErrorIf,
@@ -172,8 +173,13 @@ const getProject = async (req, res) => {
             },
             {
                 model: Media,
-                as: 'views',
-                attributes: ['id', 'url', 'mime_type'],
+                as: 'media',
+                attributes: ['id', 'url'],
+            },
+            {
+                model: Reaction,
+                as: "reactions",
+                attributes: ['id', 'reacted_by'],
             },
         ],
     });

@@ -178,10 +178,6 @@ const getUpdate = async (req, res) => {
     // Extract the project ID and update ID from the request parameters
     const { projectId, id } = req.params;
 
-    // Throw an error if the project ID or update ID is missing or invalid
-    ThrowErrorIf(!projectId || projectId === ':projectId' || projectId === '', 'Project id is required', BadRequestError);
-    ThrowErrorIf(!id || id === ':id' || id === '', 'Update id is required', BadRequestError);
-
     // Find the project by its ID
     const project = await Project.findByPk(projectId);
     ThrowErrorIf(!project, 'Project not found', NotFoundError);
@@ -196,7 +192,7 @@ const getUpdate = async (req, res) => {
             {
                 model: Media,
                 as: 'media',
-                attributes: ['url', 'mime_type', 'size'],
+                attributes: ['id', 'url'],
             },
         ],
     });
@@ -221,9 +217,6 @@ const editUpdate = async (req, res) => {
     const t = await sequelize.transaction();
 
     try {
-        // Validate the input data
-        validationInput({ projectId, id, remarks, progress }, "edit");
-
         // Find the project by its primary key
         const project = await Project.findByPk(projectId, { transaction: t });
         ThrowErrorIf(!project, "Project not found", NotFoundError);
@@ -334,10 +327,7 @@ const editUpdate = async (req, res) => {
 const deleteUpdate = async (req, res) => {
     // Get the project ID and update ID from the request parameters
     const { projectId, id } = req.params;
-
-    // Validate the input parameters
-    validationInput({ projectId, id }, 'delete');
-
+    
     // Find the project by its ID
     const project = await Project.findByPk(projectId);
     ThrowErrorIf(!project, "Project not found", NotFoundError);
