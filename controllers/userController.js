@@ -75,7 +75,7 @@ const showCurrentUser = async (req, res) => {
  * @throws {UnauthenticatedError} If the old password is incorrect.
  */
 const updateUser = async (req, res) => {
-    const { username, email, oldPassword, newPassword, barangay_id } = req.body;
+    const { username, email, password, barangay_id } = req.body;
 
     // Find the user by ID
     const user = await User.findByPk(req.user.userId);
@@ -102,9 +102,9 @@ const updateUser = async (req, res) => {
     }
 
     // Check if password needs to be updated
-    if (oldPassword && newPassword) {
+    if (password) {
         // Hash the new password before saving
-        user.password = await bcrypt.hash(newPassword, 10);
+        user.password = await bcrypt.hash(password, 10) || user.password;
     }
 
     // Save the updated user
