@@ -59,10 +59,10 @@ router.route('/:id/comments/:commentId')
 // ---------------------------REACTIONS--------------------------- //
 
 router.route('/:projectId/reactions')
+    .get(authenticateUser, getReaction)
     .post(authenticateUser, createReaction);
 
 router.route('/:projectId/reactions/:reactionId')
-    .get(authenticateUser, getReaction)
     .patch(authenticateUser, editReaction)
     .delete(authenticateUser, deleteReaction);
 
