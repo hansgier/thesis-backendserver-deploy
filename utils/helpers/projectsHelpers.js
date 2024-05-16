@@ -5,6 +5,7 @@ const {
     comments: Comment,
     media: Media,
     users: User,
+    reactions: Reaction
 } = require("../../models");
 const {
     BadRequestError,
@@ -507,6 +508,11 @@ const getProjectQuery = ({
                 as: 'media',
                 attributes: ['id', 'url'],
             },
+            {
+                model: Reaction,
+                as: 'reactions',
+                attributes: ['id','reaction_type']
+            }
         ],
         order: [['createdAt', 'DESC']],
     };

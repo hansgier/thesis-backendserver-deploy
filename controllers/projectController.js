@@ -179,7 +179,7 @@ const getProject = async (req, res) => {
             {
                 model: Reaction,
                 as: "reactions",
-                attributes: ['id', 'reacted_by'],
+                attributes: ['id', 'reaction_type', 'reacted_by'],
             },
         ],
     });
