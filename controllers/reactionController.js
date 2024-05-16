@@ -1,4 +1,4 @@
-const { sequlize, reactions: Reaction, users: User } = require('../models');
+const { sequelize, reactions: Reaction, users: User } = require('../models');
 const { StatusCodes } = require("http-status-codes");
 const { ThrowErrorIf, BadRequestError, NotFoundError } = require("../errors");
 const {
