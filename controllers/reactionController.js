@@ -48,14 +48,23 @@ const getAllReactions = async (req, res) => {
 const getReaction = async (req, res) => {
     const { projectId } = req.params;
 
-    const reaction = await Reaction.findAll({
+    const reactions = await Reaction.findAll({
         where: {
             project_id: projectId,
         },
+        attributes: [
+            'reaction_type',
+            [sequelize.fn('COUNT', sequelize.col('reaction_type')), 'count'],
+        ],
+        group: ['reaction_type'],
     });
-    ThrowErrorIf(!reaction, 'Reaction not found', NotFoundError);
 
-    res.status(StatusCodes.OK).json({ reaction });
+    ThrowErrorIf(!reactions, 'Reaction not found', NotFoundError);
+
+    const likes = reactions.find(r => r.reaction_type === 'like')?.count || 0;
+    const dislikes = reactions.find(r => r.reaction_type === 'dislike')?.count || 0;
+
+    res.status(StatusCodes.OK).json({ likes, dislikes, reactions });
 };
 
 const editReaction = async (req, res) => {
