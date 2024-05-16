@@ -110,11 +110,13 @@ const updateUser = async (req, res) => {
     // Save the updated user
     await user.save();
 
+    await user.reload()
+
     // Create a new token for the user if username or email was updated
-    const tokenUser = createTokenUser(user);
+    // const tokenUser = createTokenUser(user);
     // attachCookiesToResponse({ res, user: tokenUser });
 
-    res.status(StatusCodes.OK).send({ msg: 'User updated successfully', user: tokenUser });
+    res.status(StatusCodes.OK).send({ msg: 'User updated successfully', user });
 };
 
 const deleteUser = async (req, res) => {
