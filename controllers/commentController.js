@@ -73,9 +73,6 @@ const getAllProjectComments = async (req, res) => {
     const projectComments = await Comment.findAll(options);
     const totalCount = await project.countComments();
 
-    for (const comment of projectComments) {
-        comment.dataValues.reactionCount = await comment.countReactions();
-    }
 
     if (projectComments.length < 1) return res.status(StatusCodes.OK).json({ msg: "No comments" });
     else return res.status(StatusCodes.OK).json({

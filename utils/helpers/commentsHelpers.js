@@ -72,17 +72,6 @@ const getProjectCommentQuery = (query, id) => {
         where: {
             project_id: id,
         },
-        include: [
-            {
-                model: Reaction,
-                as: 'reactions',
-                attributes: [],
-                where: {
-                    reaction_type: 'like',
-                },
-                required: false,
-            },
-        ],
         // Group by the comment id
         group: ['Comment.id'],
         // Add a new attribute for the number of likes
@@ -92,7 +81,6 @@ const getProjectCommentQuery = (query, id) => {
             'commented_by',
             'createdAt',
             'updatedAt',
-            [sequelize.fn('COUNT', sequelize.col('Reactions.id')), 'likes'],
         ],
         // Sort the comments by the number of likes in descending order as the default option
         order: [[sequelize.literal('likes'), 'DESC']],
