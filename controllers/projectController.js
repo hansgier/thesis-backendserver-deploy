@@ -59,6 +59,7 @@ const addProject = async (req, res) => {
             completion_date: !completion_date ? null : completion_date,
             status,
             funding_source,
+            createdBy: user.id
         };
 
         const newProject = await Project.create(projectData, { transaction: t });

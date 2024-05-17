@@ -59,15 +59,6 @@ const validationCreate = async (req, barangayIds, tagsIds) => {
     const brgyIds = convertAndValidate(barangayIds, "Invalid barangay ID");
     const tgIds = convertAndValidate(tagsIds, "Invalid tag ID");
 
-    if (user.role !== "admin") {
-        // Check if there is a same barangayId to user.barangayId
-        const sameBarangayId = brgyIds.some((id) => id === user.barangay_id);
-        ThrowErrorIf(sameBarangayId, "Your barangay is already in this project", BadRequestError);
-
-        // Add the user's barangay_id to the list of barangayIds
-        brgyIds.push(user.barangay_id);
-    }
-
     // Check if the barangayIds exist in the Barangay table or database.
     const barangays = await Barangay.findAll({ where: { id: brgyIds } });
     ThrowErrorIf(
