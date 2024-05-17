@@ -120,6 +120,16 @@ const validateAndUpdateProject = async (project, projectData, user, t) => {
     // Compare the input values of the project and projectData
     await compareInputValues(project, projectData);
 
+    // Validate the barangay ids if they exist
+    if (barangayIds) {
+        await validateBarangayIds(barangayIds, user);
+    }
+
+    // Validate the tag ids if they exist
+    if (tagsIds) {
+        await validateTagIds(tagsIds);
+    }
+
     // Handle image uploads
     const uploadedImages = projectData.uploadedImages || [];
     const existingMedia = await project.getMedia();
@@ -178,18 +188,6 @@ const validateAndUpdateProject = async (project, projectData, user, t) => {
  * @throws {NotFoundError} - If some barangays do not exist.
  */
 const validateBarangayIds = async (barangayIds, user) => {
-    // If the user is not an admin, check if their barangay is already in the project
-    if (user.role !== "admin") {
-        const sameBarangayId = barangayIds.includes(user.barangay_id);
-        ThrowErrorIf(
-            sameBarangayId,
-            "Your barangay is already in this project",
-            BadRequestError,
-        );
-
-        // Add the user's barangay_id to the list of barangayIds
-        barangayIds.push(user.barangay_id);
-    }
 
     // Check if the barangays exist in the database
     const barangays = await Barangay.findAll({ where: { id: barangayIds } });
