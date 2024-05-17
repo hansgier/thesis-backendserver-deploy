@@ -120,16 +120,6 @@ const validateAndUpdateProject = async (project, projectData, user, t) => {
     // Compare the input values of the project and projectData
     await compareInputValues(project, projectData);
 
-    // Validate the barangay ids if they exist
-    if (barangayIds) {
-        await validateBarangayIds(barangayIds, user);
-    }
-
-    // Validate the tag ids if they exist
-    if (tagsIds) {
-        await validateTagIds(tagsIds);
-    }
-
     // Handle image uploads
     const uploadedImages = projectData.uploadedImages || [];
     const existingMedia = await project.getMedia();
