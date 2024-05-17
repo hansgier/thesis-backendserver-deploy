@@ -136,9 +136,7 @@ const getAllProjects = async (req, res) => {
             }
         }
     }
-
-    await projects.reload()
-
+    
     // If no projects found, return a response with a message
     if (projects.length < 1) {
         return res.status(StatusCodes.OK).json({ msg: 'No projects found' });
