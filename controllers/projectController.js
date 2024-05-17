@@ -112,38 +112,42 @@ const getAllProjects = async (req, res) => {
     const count = await Project.count();
 
     // Retrieve all projects based on the options
-    const projects = await Project.findAll(options);
+    const projects = await Project.findAll({
+        ...options,
+        include: [
+            ...options.include,
+            {
+                model: Reaction,
+                as: 'reactions',
+                attributes: [
+                    'reaction_type',
+                    [sequelize.fn('COUNT', sequelize.col('reaction_type')), 'count'],
+                ],
+                group: ['reaction_type'],
+            },
+            {
+                model: Comment,
+                as: 'comments',
+                attributes: [],
+            },
+        ],
+    });
 
     // Create an array to store the modified project data
     const modifiedProjects = [];
 
     // Loop through each project
     for (const project of projects) {
-        // Get the reaction counts for the project
-        const reactionCounts = await Reaction.findAll({
-            where: {
-                project_id: project.id,
-            },
-            attributes: [
-                'reaction_type',
-                [sequelize.fn('COUNT', sequelize.col('reaction_type')), 'count'],
-            ],
-            group: ['reaction_type'],
-        });
-
         // Calculate the likes and dislikes
-        const likes = reactionCounts.find(r => r.reaction_type === 'like')?.count || 0;
-        const dislikes = reactionCounts.find(r => r.reaction_type === 'dislike')?.count || 0;
-
-        // Get the comment count for the project
-        const commentCount = await project.countComments();
+        const likes = project.reactions.find(r => r.reaction_type === 'like')?.count || 0;
+        const dislikes = project.reactions.find(r => r.reaction_type === 'dislike')?.count || 0;
 
         // Create a new object with the modified project data
         const modifiedProject = {
             ...project.toJSON(),
             reactions: { likes, dislikes },
             reactionCount: likes + dislikes,
-            commentCount,
+            commentCount: project.comments.length,
         };
 
         // Remove the unnecessary properties
