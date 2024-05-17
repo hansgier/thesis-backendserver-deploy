@@ -265,53 +265,53 @@ const compareInputValues = async (project, projectData) => {
         funding_source: currentFundingSource,
     } = project;
 
-    // Compare the input values with the current values
-    // Throw an error if any of them are the same
-    ThrowErrorIf(
-        title === currentTitle,
-        'Title is the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        description === currentDescription,
-        'Description is the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        funding_source === currentFundingSource,
-        'Funding source is the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        cost === currentCost,
-        'Cost is the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        progress === currentProgress,
-        'Progress is the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        start_date === currentStartDate,
-        'Start date is the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        due_date === currentDueDate,
-        'Due date is the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        completion_date === currentCompletionDate,
-        'Completion date is the same as the current value',
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        status === currentStatus,
-        'Status is the same as the current value',
-        BadRequestError,
-    );
+    // // Compare the input values with the current values
+    // // Throw an error if any of them are the same
+    // ThrowErrorIf(
+    //     title === currentTitle,
+    //     'Title is the same as the current value',
+    //     BadRequestError,
+    // );
+    // ThrowErrorIf(
+    //     description === currentDescription,
+    //     'Description is the same as the current value',
+    //     BadRequestError,
+    // );
+    // ThrowErrorIf(
+    //     funding_source === currentFundingSource,
+    //     'Funding source is the same as the current value',
+    //     BadRequestError,
+    // );
+    // ThrowErrorIf(
+    //     cost === currentCost,
+    //     'Cost is the same as the current value',
+    //     BadRequestError,
+    // );
+    // ThrowErrorIf(
+    //     progress === currentProgress,
+    //     'Progress is the same as the current value',
+    //     BadRequestError,
+    // );
+    // ThrowErrorIf(
+    //     start_date === currentStartDate,
+    //     'Start date is the same as the current value',
+    //     BadRequestError,
+    // );
+    // ThrowErrorIf(
+    //     due_date === currentDueDate,
+    //     'Due date is the same as the current value',
+    //     BadRequestError,
+    // );
+    // ThrowErrorIf(
+    //     completion_date === currentCompletionDate,
+    //     'Completion date is the same as the current value',
+    //     BadRequestError,
+    // );
+    // ThrowErrorIf(
+    //     status === currentStatus,
+    //     'Status is the same as the current value',
+    //     BadRequestError,
+    // );
 };
 
 // -------------------------------- GET -------------------------------- //
