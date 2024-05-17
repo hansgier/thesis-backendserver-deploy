@@ -301,9 +301,6 @@ const updateProject = async (req, res) => {
         },
     ];
 
-    // Reload the project with the updated data
-    await project.reload({ include: includeOptions });
-
     // Send the response with the updated project
     res.status(StatusCodes.OK).json({
         msg: `Success! Project ${ id } updated`,
