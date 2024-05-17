@@ -35,7 +35,7 @@ const searchComments = (options, search) => {
  */
 const sortComments = (options, sort) => {
     // Define the valid columns for sorting
-    const validColumns = ['createdAt', 'reactions'];
+    const validColumns = ['createdAt'];
 
     // Check if the sort parameter starts with '-', indicating descending order
     const isDesc = sort.startsWith('-');
@@ -83,7 +83,7 @@ const getProjectCommentQuery = (query, id) => {
             'updatedAt',
         ],
         // Sort the comments by the number of likes in descending order as the default option
-        order: [[sequelize.literal('likes'), 'DESC']],
+        order: [['createdAt', 'DESC']],
     };
 
     // Sort the comments if sort is provided in the query
