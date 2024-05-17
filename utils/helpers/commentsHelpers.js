@@ -73,7 +73,7 @@ const getProjectCommentQuery = (query, id) => {
             project_id: id,
         },
         // Group by the comment id
-        group: ['Comment.id'],
+        group: ['id'],
         // Add a new attribute for the number of likes
         attributes: [
             'id',
