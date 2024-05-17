@@ -12,6 +12,7 @@ const TAGS = [
     'Infrastructure',
     'Environmental Management',
     'Sports And Recreation',
+    "Other"
 ];
 
 const STATUS = [
