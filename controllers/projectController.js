@@ -99,12 +99,11 @@ const addProject = async (req, res) => {
     }
 };
 
-/**
- * Retrieves all projects based on the provided query parameters.
+/** Retrieves all projects based on the provided query parameters. @param {Object} req - The request object. @param {Object} res - The response object. @returns {Object} - The response object containing the projects. /
  *
- * @param {Object} req - The request object.
- * @param {Object} res - The response object.
- * @returns {Object} - The response object containing the projects.
+ * @param req
+ * @param res
+ * @returns {Promise<void>}
  */
 const getAllProjects = async (req, res) => {
     // Get the project query options based on the request query parameters
@@ -112,62 +111,46 @@ const getAllProjects = async (req, res) => {
     const count = await Project.count();
 
     // Retrieve all projects based on the options
-    const projects = await Project.findAll({
-        ...options,
-        include: [
-            { model: Tag, as: 'tags' },
-            { model: Barangay, as: 'barangays' },
-            { model: Comment, as: 'comments', attributes: [] },
-            { model: Media, as: 'media' },
-        ],
-    });
+    const projects = await Project.findAll(options);
 
-    // Retrieve reaction counts separately
-    const reactionCounts = await Reaction.findAll({
-        attributes: [
-            'project_id',
-            'reaction_type',
-            [sequelize.fn('COUNT', sequelize.col('reaction_type')), 'count'],
-        ],
-        group: ['project_id', 'reaction_type'],
-        raw: true,
-    });
-
-    // Create an array to store the modified project data
-    const modifiedProjects = [];
-
-    // Loop through each project
+    // Add comment count, reaction count (likes and dislikes) to each project
     for (const project of projects) {
-        // Calculate the likes and dislikes
-        const likes = reactionCounts.find(
-            (r) => r.project_id === project.id && r.reaction_type === 'like'
-        )?.count || 0;
-        const dislikes = reactionCounts.find(
-            (r) => r.project_id === project.id && r.reaction_type === 'dislike'
-        )?.count || 0;
+        project.dataValues.commentCount = await project.countComments();
 
-        // Create a new object with the modified project data
-        const modifiedProject = {
-            ...project.toJSON(),
-            reactions: { likes, dislikes },
-            reactionCount: likes + dislikes,
-            commentCount: project.comments.length,
-        };
+        // Get the reactions for the project
+        const reactions = await project.getReactions({
+            attributes: ['reaction_type'],
+            group: ['reaction_type'],
+        });
 
-        // Add the modified project to the array
-        modifiedProjects.push(modifiedProject);
+        // Initialize likes and dislikes to 0
+        project.dataValues.likes = 0;
+        project.dataValues.dislikes = 0;
+
+        // Count the number of likes and dislikes
+        for (const reaction of reactions) {
+            if (reaction.reaction_type === 'like') {
+                project.dataValues.likes = reaction.dataValues.count;
+            } else if (reaction.reaction_type === 'dislike') {
+                project.dataValues.dislikes = reaction.dataValues.count;
+            }
+        }
     }
 
     // If no projects found, return a response with a message
-    if (modifiedProjects.length < 1) {
+    if (projects.length < 1) {
         return res.status(StatusCodes.OK).json({ msg: 'No projects found' });
     }
 
-    // Return a response with the count of projects and the modified projects
-    return res
-        .status(StatusCodes.OK)
-        .json({ totalCount: count, count: modifiedProjects.length, projects: modifiedProjects });
+    // Return a response with the count of projects, projects, and likes/dislikes
+    return res.status(StatusCodes.OK).json({
+        totalCount: count,
+        count: projects.length,
+        projects,
+    });
 };
+
+
 
 /**
  * Retrieves a project by its ID.
