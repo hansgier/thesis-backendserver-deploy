@@ -262,50 +262,63 @@ const updateProject = async (req, res) => {
     // Throw an error if the id is missing or invalid
     ThrowErrorIf(!id || id === ':id' || id === '', 'Id is required', BadRequestError);
 
-    // Find the project and the user with the given id
-    const project = await Project.findOne({ where: { id } });
-    const user = await User.findByPk(req.user.userId);
+    // Start a Sequelize transaction
+    const t = await sequelize.transaction();
 
-    // Throw an error if the project or the user is not found
-    ThrowErrorIf(!project, `Project ${ id } not found`, NotFoundError);
-    ThrowErrorIf(!user, 'User not found', NotFoundError);
+    try {
+        // Find the project and the user with the given id
+        const project = await Project.findOne({ where: { id } }, { transaction: t });
+        const user = await User.findByPk(req.user.userId, { transaction: t });
 
-    // Check the permissions of the user
-    checkPermissions(req.user, project.createdBy);
+        // Throw an error if the project or the user is not found
+        ThrowErrorIf(!project, `Project ${id} not found`, NotFoundError);
+        ThrowErrorIf(!user, 'User not found', NotFoundError);
 
-    // Extract the project data from the request body
-    const projectData = req.body;
+        // Check the permissions of the user
+        checkPermissions(req.user, project.createdBy);
 
-    // Validate and update the project data
-    await validateAndUpdateProject(project, projectData, user);
+        // Extract the project data from the request body
+        const projectData = req.body;
 
-    // Include the tags and barangays in the project
-    const includeOptions = [
-        {
-            model: Tag,
-            as: 'tags',
-            attributes: ['id', 'name'],
-            through: { attributes: [] },
-        },
-        {
-            model: Barangay,
-            as: 'barangays',
-            attributes: ['id', 'name'],
-            through: { attributes: [] },
-        },
-        {
-            model: Media,
-            as: 'media',
-            attributes: ['id', 'url'],
-            through: { attributes: [] },
-        },
-    ];
+        // Validate and update the project data
+        await validateAndUpdateProject(project, projectData, user, t);
 
-    // Send the response with the updated project
-    res.status(StatusCodes.OK).json({
-        msg: `Success! Project ${ id } updated`,
-        project,
-    });
+        // Include the tags and barangays in the project
+        const includeOptions = [
+            {
+                model: Tag,
+                as: 'tags',
+                attributes: ['id', 'name'],
+                through: { attributes: [] },
+            },
+            {
+                model: Barangay,
+                as: 'barangays',
+                attributes: ['id', 'name'],
+                through: { attributes: [] },
+            },
+            {
+                model: Media,
+                as: 'media',
+                attributes: ['id', 'url'],
+                through: { attributes: [] },
+            },
+        ];
+
+        // Commit the transaction
+        await t.commit();
+
+        // Send the response with the updated project
+        res.status(StatusCodes.OK).json({
+            msg: `Success! Project ${id} updated`,
+            project,
+        });
+    } catch (error) {
+        // Rollback the transaction if an error occurs
+        await t.rollback();
+        console.error(error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Failed to update project', error: error.message });
+    }
 };
 
 /**

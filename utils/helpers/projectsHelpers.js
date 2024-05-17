@@ -110,7 +110,7 @@ const PROJECT_DATA_KEYS = {
  * @param {Object} projectData - The new project data to update with.
  * @param {Object} user - The user object.
  */
-const validateAndUpdateProject = async (project, projectData, user) => {
+const validateAndUpdateProject = async (project, projectData, user, t) => {
     // Destructure the project data using the constant object
     let {
         [PROJECT_DATA_KEYS.title]: title,
@@ -176,15 +176,15 @@ const validateAndUpdateProject = async (project, projectData, user) => {
     };
 
     // Update the project with the given data
-    await updateProject(project, projectData);
+    await updateProject(project, projectData, t);
 
     // Update the barangays and tags of the project if they exist
     if (barangayIds) {
-        await project.setBarangays(barangayIds);
+        await project.setBarangays(barangayIds, { transaction: t });
     }
 
     if (tagsIds) {
-        await project.setTags(tagsIds);
+        await project.setTags(tagsIds, { transaction: t });
     }
 };
 
@@ -237,7 +237,7 @@ const validateTagIds = async (tagIds) => {
  * @param {Object} project - The project to update.
  * @param {Object} projectData - The updated project data.
  */
-const updateProject = async (project, projectData) => {
+const updateProject = async (project, projectData, t) => {
     // Create a new object with only the project data keys
     const updatedProjectData = Object.fromEntries(
         Object.entries(projectData).filter(([key]) =>
@@ -249,7 +249,7 @@ const updateProject = async (project, projectData) => {
     await project.update({
         ...project.dataValues,
         ...updatedProjectData,
-    });
+    }, { transaction: t });
 };
 
 /**
