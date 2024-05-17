@@ -32,19 +32,6 @@ function validateCreate({ projectId, remarks, progress }) {
         BadRequestError,
     );
 
-    ThrowErrorIf(!remarks, "Remarks is required", BadRequestError);
-    ThrowErrorIf(!progress, "Progress is required", BadRequestError);
-
-    ThrowErrorIf(
-        typeof remarks !== "string",
-        "Invalid remarks format",
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        isNaN(Number(progress)) || Number(progress) < 0 || Number(progress) > 100,
-        "Invalid progress format",
-        BadRequestError,
-    );
 }
 
 function validateDeleteAll({ projectId }) {
@@ -82,17 +69,6 @@ function validateEdit({ projectId, id, remarks, progress }) {
         `Update id is required`,
         BadRequestError,
     );
-    ThrowErrorIf(
-        remarks && typeof remarks !== "string",
-        "Invalid remarks format",
-        BadRequestError,
-    );
-    ThrowErrorIf(
-        progress &&
-        (isNaN(Number(progress)) || Number(progress) < 0 || Number(progress) > 100),
-        "Invalid progress format",
-        BadRequestError,
-    );
 }
 
 // --------------------------------------- CREATE --------------------------------------- //
@@ -109,14 +85,14 @@ const createMediaRecord = async (file, update, project) => {
     });
 };
 
-const handleError = async (error, files, projectId) => {
+const handleError = async (error, projectId) => {
     // Delete the files regardless of the error status code
-    for (let file of files) {
-        const filePath = path.normalize(
-            path.join(__dirname, "../../", file.path),
-        );
-        await fs.promises.unlink(filePath);
-    }
+    // for (let file of files) {
+    //     const filePath = path.normalize(
+    //         path.join(__dirname, "../../", file.path),
+    //     );
+    //     await fs.promises.unlink(filePath);
+    // }
     if (error.statusCode === 403) {
         throw error;
     } else if (error.statusCode !== 409) {

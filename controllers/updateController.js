@@ -47,15 +47,6 @@ const createUpdate = async (req, res) => {
 
         checkPermissions(req.user, project.createdBy);
 
-        const projectUpdates = await project.getUpdates({ transaction: t });
-        projectUpdates.map((update) => {
-            ThrowErrorIf(
-                update.dataValues.progress === Number(progress) && update.dataValues.project_id === project.id,
-                "Progress value for project already exists",
-                ConflictError,
-            );
-        });
-
         if (Number(progress) === 100) {
             project.status = "completed";
             project.progress = 100;
@@ -81,6 +72,7 @@ const createUpdate = async (req, res) => {
             transaction: t,
         });
 
+        if (uploadedImages.length > 0){
         // Create media records
         const mediaRecords = await Promise.all(
             uploadedImages.map((image) =>
@@ -100,8 +92,7 @@ const createUpdate = async (req, res) => {
         // Add the media records to the update
         await update.addMedia(mediaRecords, { transaction: t });
 
-        // Reload the update to include the newly added media records
-        await update.reload({ transaction: t });
+        }
 
         // Commit the transaction
         await t.commit();
@@ -113,17 +104,9 @@ const createUpdate = async (req, res) => {
             update,
         });
     } catch (error) {
-        // Get the public IDs of the uploaded images
-        const publicIdsToDelete = uploadedImages.map((image) => image.public_id);
-
         // Rollback the transaction
         await t.rollback();
-
-        // Delete the uploaded images from Cloudinary
-        await Promise.all(publicIdsToDelete.map((publicId) => cloudinary.uploader.destroy(publicId)));
-
-        // Handle any errors that occur
-        await handleError(error, req.files, projectId);
+        await handleError(error, projectId);
     }
 };
 
@@ -227,17 +210,6 @@ const editUpdate = async (req, res) => {
         const update = await Update.findByPk(id, { transaction: t });
         ThrowErrorIf(!update, "Update not found", NotFoundError);
 
-        // Check if the progress value already exists for the project
-        const existingProgress = await Update.findOne({
-            where: {
-                project_id: projectId,
-                progress: Number(progress),
-                id: { [Op.ne]: id }, // Exclude the current update
-            },
-            transaction: t,
-        });
-        ThrowErrorIf(existingProgress, "Progress value for project already exists", ConflictError);
-
         // Update the update attributes
         update.remarks = remarks || update.remarks;
         update.progress = progress || update.progress;
@@ -245,6 +217,7 @@ const editUpdate = async (req, res) => {
         // Save the update
         await update.save({ transaction: t });
 
+        if (uploadedImages > 0){
         // Handle image uploads
         const uploadedImages = req.body.uploadedImages || [];
         const existingMedia = await update.getMedia({ transaction: t });
@@ -280,9 +253,10 @@ const editUpdate = async (req, res) => {
             ),
         );
         await update.addMedia(mediaRecords, { transaction: t });
+        }
 
         // Reload the update to include the newly added media records
-        await update.reload({ transaction: t, include: [{ model: Media, as: 'media' }] });
+        // await update.reload({ transaction: t, include: [{ model: Media, as: 'media' }] });
 
         // Update the project attributes
         if (Number(progress) === 100) {
@@ -304,16 +278,16 @@ const editUpdate = async (req, res) => {
         res.status(StatusCodes.OK).json({ msg: `Update ID: ${ id } updated`, update });
     } catch (error) {
         // Get the public IDs of the uploaded images
-        const publicIdsToDelete = uploadedImages.map((image) => image.public_id);
+        // const publicIdsToDelete = uploadedImages.map((image) => image.public_id);
 
         // Rollback the transaction
         await t.rollback();
 
         // Delete the uploaded images from Cloudinary
-        await Promise.all(publicIdsToDelete.map((publicId) => cloudinary.uploader.destroy(publicId)));
+        // await Promise.all(publicIdsToDelete.map((publicId) => cloudinary.uploader.destroy(publicId)));
 
         // Handle any errors that occur
-        await handleError(error, req.files, projectId);
+        await handleError(error,projectId);
     }
 };
 
@@ -340,7 +314,7 @@ const deleteUpdate = async (req, res) => {
 
     // Get the associated media records for the update
     const mediaRecords = await update.getMedia();
-
+    if (mediaRecords){
     // Delete the media files associated with the update from Cloudinary
     await Promise.all(
         mediaRecords.map(async (media) => {
@@ -348,6 +322,9 @@ const deleteUpdate = async (req, res) => {
             await cloudinary.uploader.destroy(publicId);
         }),
     );
+
+    }
+
 
     // Delete the update
     await update.destroy();
@@ -385,17 +362,17 @@ const deleteAllUpdate = async (req, res) => {
         return res.status(StatusCodes.OK).json({ msg: "No update" });
 
     // Delete all associated media files for each update from Cloudinary
-    await Promise.all(
-        updates.map(async (update) => {
-            const mediaRecords = await update.getMedia();
-            await Promise.all(
-                mediaRecords.map(async (media) => {
-                    const publicId = media.url.split('/').pop().split('.')[0];
-                    await cloudinary.uploader.destroy(publicId);
-                }),
-            );
-        }),
-    );
+    // await Promise.all(
+    //     updates.map(async (update) => {
+    //         const mediaRecords = await update.getMedia();
+    //         await Promise.all(
+    //             mediaRecords.map(async (media) => {
+    //                 const publicId = media.url.split('/').pop().split('.')[0];
+    //                 await cloudinary.uploader.destroy(publicId);
+    //             }),
+    //         );
+    //     }),
+    // );
 
     // Delete all updates for the project
     await Update.destroy({ where: { project_id: project.id } });
