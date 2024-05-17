@@ -115,22 +115,22 @@ const getAllProjects = async (req, res) => {
     const projects = await Project.findAll({
         ...options,
         include: [
-            ...options.include,
-            {
-                model: Reaction,
-                as: 'reactions',
-                attributes: [
-                    'reaction_type',
-                    [sequelize.fn('COUNT', sequelize.col('reaction_type')), 'count'],
-                ],
-                group: ['reaction_type'],
-            },
-            {
-                model: Comment,
-                as: 'comments',
-                attributes: [],
-            },
+            { model: Tag, as: 'tags' },
+            { model: Barangay, as: 'barangays' },
+            { model: Comment, as: 'comments', attributes: [] },
+            { model: Media, as: 'media' },
         ],
+    });
+
+    // Retrieve reaction counts separately
+    const reactionCounts = await Reaction.findAll({
+        attributes: [
+            'project_id',
+            'reaction_type',
+            [sequelize.fn('COUNT', sequelize.col('reaction_type')), 'count'],
+        ],
+        group: ['project_id', 'reaction_type'],
+        raw: true,
     });
 
     // Create an array to store the modified project data
@@ -139,8 +139,12 @@ const getAllProjects = async (req, res) => {
     // Loop through each project
     for (const project of projects) {
         // Calculate the likes and dislikes
-        const likes = project.reactions.find(r => r.reaction_type === 'like')?.count || 0;
-        const dislikes = project.reactions.find(r => r.reaction_type === 'dislike')?.count || 0;
+        const likes = reactionCounts.find(
+            (r) => r.project_id === project.id && r.reaction_type === 'like'
+        )?.count || 0;
+        const dislikes = reactionCounts.find(
+            (r) => r.project_id === project.id && r.reaction_type === 'dislike'
+        )?.count || 0;
 
         // Create a new object with the modified project data
         const modifiedProject = {
@@ -149,10 +153,6 @@ const getAllProjects = async (req, res) => {
             reactionCount: likes + dislikes,
             commentCount: project.comments.length,
         };
-
-        // Remove the unnecessary properties
-        delete modifiedProject.comments;
-        delete modifiedProject.reactions;
 
         // Add the modified project to the array
         modifiedProjects.push(modifiedProject);
@@ -164,11 +164,9 @@ const getAllProjects = async (req, res) => {
     }
 
     // Return a response with the count of projects and the modified projects
-    return res.status(StatusCodes.OK).json({
-        totalCount: count,
-        count: modifiedProjects.length,
-        projects: modifiedProjects,
-    });
+    return res
+        .status(StatusCodes.OK)
+        .json({ totalCount: count, count: modifiedProjects.length, projects: modifiedProjects });
 };
 
 /**
