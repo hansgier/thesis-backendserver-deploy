@@ -13,11 +13,6 @@ module.exports = (sequelize, DataTypes) => {
                         args: true,
                         msg: 'Please provide a comment',
                     },
-                    isText(value) {
-                        if (typeof value !== 'string') {
-                            throw new Error('Content must be a text');
-                        }
-                    },
                 },
             },
         },

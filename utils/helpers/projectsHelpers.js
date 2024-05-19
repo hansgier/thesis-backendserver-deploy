@@ -5,7 +5,7 @@ const {
     comments: Comment,
     media: Media,
     users: User,
-    reactions: Reaction
+    reactions: Reaction,
 } = require("../../models");
 const {
     BadRequestError,
@@ -113,6 +113,9 @@ const validateAndUpdateProject = async (project, projectData, user, t) => {
         [PROJECT_DATA_KEYS.completion_date]: completion_date,
         [PROJECT_DATA_KEYS.status]: status,
         [PROJECT_DATA_KEYS.funding_source]: funding_source,
+        [PROJECT_DATA_KEYS.implementing_agency]: implementing_agency,
+        [PROJECT_DATA_KEYS.contract_term]: contract_term,
+        [PROJECT_DATA_KEYS.contractor]: contractor,
         [PROJECT_DATA_KEYS.barangayIds]: barangayIds,
         [PROJECT_DATA_KEYS.tagsIds]: tagsIds,
     } = projectData;
@@ -249,6 +252,9 @@ const compareInputValues = async (project, projectData) => {
         due_date,
         completion_date,
         funding_source,
+        implementing_agency,
+        contract_term,
+        contractor,
         status,
     } = projectData;
 
@@ -263,6 +269,9 @@ const compareInputValues = async (project, projectData) => {
         completion_date: currentCompletionDate,
         status: currentStatus,
         funding_source: currentFundingSource,
+        implementing_agency: currentImplementingAgency,
+        contract_term: currentContractTerm,
+        contractor: currentContractor,
     } = project;
 
     // // Compare the input values with the current values
@@ -444,7 +453,6 @@ const searchProjectsByTitle = (options, search) => {
  * @param {string} queryParams.status - A string to filter projects by status.
  * @param {string} queryParams.sort - A string to sort projects by.
  * @param {string} queryParams.progressRange - A string to filter projects by progress range.
- * @param {string} queryParams.viewsRange - A string to filter projects by views range.
  * @param {string} queryParams.costRange - A string to filter projects by cost range.
  * @param {string} queryParams.page - A string to specify the page number for pagination.
  * @param {string} queryParams.limit - A string to specify the number of projects per page for pagination.
@@ -457,7 +465,6 @@ const getProjectQuery = ({
                              status,
                              sort,
                              progressRange,
-                             viewsRange,
                              costRange,
                              page = "1",
                              limit = "10",
@@ -490,8 +497,8 @@ const getProjectQuery = ({
             {
                 model: Reaction,
                 as: 'reactions',
-                attributes: ['id','reaction_type']
-            }
+                attributes: ['id', 'reaction_type'],
+            },
         ],
         order: [['createdAt', 'DESC']],
     };
@@ -507,9 +514,6 @@ const getProjectQuery = ({
 
     // Filter projects by progress range if progressRange query is provided
     progressRange && filterRange(options, 'progress', progressRange);
-
-    // Filter projects by views range if viewsRange query is provided
-    viewsRange && filterRange(options, 'views', viewsRange);
 
     // Filter projects by cost range if costRange query is provided
     costRange && filterRange(options, 'cost', costRange);

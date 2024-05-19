@@ -6,7 +6,6 @@ const {
     users: User,
     tags: Tag,
     barangays: Barangay,
-    views: View,
     comments: Comment,
     media: Media,
     updates: Update,
@@ -40,6 +39,9 @@ const addProject = async (req, res) => {
         completion_date,
         status,
         funding_source,
+        implementing_agency,
+        contract_term,
+        contractor,
         tagsIds,
         barangayIds,
         uploadedImages,
@@ -59,26 +61,29 @@ const addProject = async (req, res) => {
             completion_date: !completion_date ? null : completion_date,
             status,
             funding_source,
-            createdBy: user.id
+            implementing_agency,
+            contract_term,
+            contractor,
+            createdBy: user.id,
         };
 
         const newProject = await Project.create(projectData, { transaction: t });
 
-        if (uploadedImages){
-        const mediaRecords = await Promise.all(
-            uploadedImages.map((image) =>
-                Media.create(
-                    {
-                        url: image.secure_url,
-                        mime_type: image.resource_type,
-                        size: image.bytes,
-                        project_id: newProject.id,
-                    },
-                    { transaction: t },
+        if (uploadedImages) {
+            const mediaRecords = await Promise.all(
+                uploadedImages.map((image) =>
+                    Media.create(
+                        {
+                            url: image.secure_url,
+                            mime_type: image.resource_type,
+                            size: image.bytes,
+                            project_id: newProject.id,
+                        },
+                        { transaction: t },
+                    ),
                 ),
-            ),
-        );
-        await newProject.addMedia(mediaRecords, { transaction: t });
+            );
+            await newProject.addMedia(mediaRecords, { transaction: t });
         }
 
         await Promise.all([
@@ -153,7 +158,6 @@ const getAllProjects = async (req, res) => {
 };
 
 
-
 /**
  * Retrieves a project by its ID.
  *
@@ -175,7 +179,8 @@ const getProject = async (req, res) => {
 
     // Find the project by ID, including associated tags and barangays
     const project = await Project.findByPk(id, {
-        attributes: ['id', 'title', 'description', 'cost', 'start_date', 'due_date', 'completion_date', 'status', 'progress', 'views', 'createdBy'],
+        attributes: ['id', 'title', 'description', 'cost', 'start_date', 'due_date', 'completion_date', 'status', 'progress', 'funding_source', 'implementing_agency',
+            'contract_term', 'contractor', 'createdBy'],
         include: [
             {
                 model: Tag,
@@ -210,26 +215,6 @@ const getProject = async (req, res) => {
     // Check if the project with the given ID is not found
     ThrowErrorIf(!project, `Project: ${ id } not found`, NotFoundError);
 
-    if (req.user.role !== 'admin') {
-        // Check if there is a view record for the user and project
-        const view = await View.findOne({
-            where: {
-                user_id: userId,
-                project_id: id,
-            },
-        });
-
-        // If there is no view record, create one and increment the project views
-        if (!view) {
-            await View.create({
-                user_id: userId,
-                project_id: id,
-            });
-            await project.increment('views');
-        }
-        await project.reload();
-    }
-
     // Add reaction count to project
     project.dataValues.reactionCount = await project.countReactions();
 
@@ -255,6 +240,9 @@ const updateProject = async (req, res) => {
         due_date,
         completion_date,
         funding_source,
+        implementing_agency,
+        contract_term,
+        contractor,
         status,
         tagsIds,
         barangayIds,
@@ -273,7 +261,7 @@ const updateProject = async (req, res) => {
         const user = await User.findByPk(req.user.userId, { transaction: t });
 
         // Throw an error if the project or the user is not found
-        ThrowErrorIf(!project, `Project ${id} not found`, NotFoundError);
+        ThrowErrorIf(!project, `Project ${ id } not found`, NotFoundError);
         ThrowErrorIf(!user, 'User not found', NotFoundError);
 
         // Check the permissions of the user
@@ -312,7 +300,7 @@ const updateProject = async (req, res) => {
 
         // Send the response with the updated project
         res.status(StatusCodes.OK).json({
-            msg: `Success! Project ${id} updated`,
+            msg: `Success! Project ${ id } updated`,
             project,
         });
     } catch (error) {

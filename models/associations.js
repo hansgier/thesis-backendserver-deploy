@@ -13,12 +13,12 @@ module.exports = (db) => {
         reactions: Reaction,
         updates: Update,
         tags: Tag,
-        views: View,
         announcements: Announcement,
         conversations: Conversation,
         messages: Message,
+        contacts: Contact,
     } = db;
-    
+
     // User - Barangay (many-to-one)
     User.belongsTo(Barangay, { foreignKey: 'barangay_id', as: 'barangay' });
     Barangay.hasMany(User, { foreignKey: 'barangay_id', as: 'users' });
@@ -35,10 +35,9 @@ module.exports = (db) => {
     User.hasMany(Reaction, { foreignKey: 'reacted_by', as: 'reactions', onDelete: 'cascade' });
     Reaction.belongsTo(User, { foreignKey: 'reacted_by', as: 'reactor' });
 
-
-    // User - View (one-to-many)
-    User.hasMany(View, { foreignKey: 'user_id', as: 'views', onDelete: 'cascade' });
-    View.belongsTo(User, { foreignKey: 'user_id', as: 'user' });
+    // User - Contact (one-to-many)
+    User.hasMany(Contact, { foreignKey: 'created_by', as: 'contacts' });
+    Contact.belongsTo(User, { foreignKey: 'created_by', as: 'creator' });
 
     // Project - Barangay (many-to-many)
     Project.belongsToMany(Barangay, {
@@ -71,10 +70,6 @@ module.exports = (db) => {
     // Project - Reaction (one-to-many)
     Project.hasMany(Reaction, { foreignKey: 'project_id', as: 'reactions', onDelete: 'cascade' });
     Reaction.belongsTo(Project, { foreignKey: 'project_id', as: 'project' });
-
-    // Project - View (one-to-many)
-    Project.hasMany(View, { foreignKey: 'project_id', as: 'viewers', onDelete: 'cascade' });
-    View.belongsTo(Project, { foreignKey: 'project_id', as: 'viewedProject' });
 
     // Project - Tag (many-to-many)
     Project.belongsToMany(Tag, {

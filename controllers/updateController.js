@@ -72,25 +72,25 @@ const createUpdate = async (req, res) => {
             transaction: t,
         });
 
-        if (uploadedImages.length > 0){
-        // Create media records
-        const mediaRecords = await Promise.all(
-            uploadedImages.map((image) =>
-                Media.create(
-                    {
-                        url: image.secure_url,
-                        mime_type: image.resource_type,
-                        size: image.bytes,
-                        update_id: update.id,
-                        project_id: projectId,
-                    },
-                    { transaction: t },
+        if (uploadedImages.length > 0) {
+            // Create media records
+            const mediaRecords = await Promise.all(
+                uploadedImages.map((image) =>
+                    Media.create(
+                        {
+                            url: image.secure_url,
+                            mime_type: image.resource_type,
+                            size: image.bytes,
+                            update_id: update.id,
+                            project_id: projectId,
+                        },
+                        { transaction: t },
+                    ),
                 ),
-            ),
-        );
+            );
 
-        // Add the media records to the update
-        await update.addMedia(mediaRecords, { transaction: t });
+            // Add the media records to the update
+            await update.addMedia(mediaRecords, { transaction: t });
 
         }
 
@@ -217,42 +217,42 @@ const editUpdate = async (req, res) => {
         // Save the update
         await update.save({ transaction: t });
 
-        if (uploadedImages > 0){
-        // Handle image uploads
-        const uploadedImages = req.body.uploadedImages || [];
-        const existingMedia = await update.getMedia({ transaction: t });
+        if (uploadedImages > 0) {
+            // Handle image uploads
+            const uploadedImages = req.body.uploadedImages || [];
+            const existingMedia = await update.getMedia({ transaction: t });
 
-        // Remove existing media records that are not present in the new uploads
-        const mediaToRemove = existingMedia.filter(
-            (media) => !uploadedImages.some((upload) => upload.split('/').pop().split('.')[0] === media.url.split('/').pop().split('.')[0]),
-        );
-        await Promise.all(mediaToRemove.map((media) => media.destroy({ transaction: t })));
+            // Remove existing media records that are not present in the new uploads
+            const mediaToRemove = existingMedia.filter(
+                (media) => !uploadedImages.some((upload) => upload.split('/').pop().split('.')[0] === media.url.split('/').pop().split('.')[0]),
+            );
+            await Promise.all(mediaToRemove.map((media) => media.destroy({ transaction: t })));
 
-        // Get the public IDs of the removed media records
-        const publicIdsToDelete = mediaToRemove.map((media) => media.url.split('/').pop().split('.')[0]);
+            // Get the public IDs of the removed media records
+            const publicIdsToDelete = mediaToRemove.map((media) => media.url.split('/').pop().split('.')[0]);
 
-        // Delete the removed media from Cloudinary
-        await Promise.all(publicIdsToDelete.map((publicId) => cloudinary.uploader.destroy(publicId)));
+            // Delete the removed media from Cloudinary
+            await Promise.all(publicIdsToDelete.map((publicId) => cloudinary.uploader.destroy(publicId)));
 
-        // Create new media records for the uploaded images
-        const newMedia = uploadedImages.filter(
-            (upload) => !existingMedia.some((media) => media.url.split('/').pop().split('.')[0] === upload.public_id),
-        );
-        const mediaRecords = await Promise.all(
-            newMedia.map((upload) =>
-                Media.create(
-                    {
-                        url: upload.secure_url,
-                        mime_type: upload.resource_type,
-                        size: upload.bytes,
-                        update_id: update.id,
-                        project_id: projectId,
-                    },
-                    { transaction: t },
+            // Create new media records for the uploaded images
+            const newMedia = uploadedImages.filter(
+                (upload) => !existingMedia.some((media) => media.url.split('/').pop().split('.')[0] === upload.public_id),
+            );
+            const mediaRecords = await Promise.all(
+                newMedia.map((upload) =>
+                    Media.create(
+                        {
+                            url: upload.secure_url,
+                            mime_type: upload.resource_type,
+                            size: upload.bytes,
+                            update_id: update.id,
+                            project_id: projectId,
+                        },
+                        { transaction: t },
+                    ),
                 ),
-            ),
-        );
-        await update.addMedia(mediaRecords, { transaction: t });
+            );
+            await update.addMedia(mediaRecords, { transaction: t });
         }
 
         // Reload the update to include the newly added media records
@@ -287,7 +287,7 @@ const editUpdate = async (req, res) => {
         // await Promise.all(publicIdsToDelete.map((publicId) => cloudinary.uploader.destroy(publicId)));
 
         // Handle any errors that occur
-        await handleError(error,projectId);
+        await handleError(error, projectId);
     }
 };
 
@@ -301,7 +301,7 @@ const editUpdate = async (req, res) => {
 const deleteUpdate = async (req, res) => {
     // Get the project ID and update ID from the request parameters
     const { projectId, id } = req.params;
-    
+
     // Find the project by its ID
     const project = await Project.findByPk(projectId);
     ThrowErrorIf(!project, "Project not found", NotFoundError);
@@ -314,14 +314,14 @@ const deleteUpdate = async (req, res) => {
 
     // Get the associated media records for the update
     const mediaRecords = await update.getMedia();
-    if (mediaRecords){
-    // Delete the media files associated with the update from Cloudinary
-    await Promise.all(
-        mediaRecords.map(async (media) => {
-            const publicId = media.url.split('/').pop().split('.')[0];
-            await cloudinary.uploader.destroy(publicId);
-        }),
-    );
+    if (mediaRecords) {
+        // Delete the media files associated with the update from Cloudinary
+        await Promise.all(
+            mediaRecords.map(async (media) => {
+                const publicId = media.url.split('/').pop().split('.')[0];
+                await cloudinary.uploader.destroy(publicId);
+            }),
+        );
 
     }
 

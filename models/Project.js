@@ -20,11 +20,6 @@ module.exports = (sequelize, DataTypes) => {
                         args: [50],
                         msg: 'Title must be at most 50 characters',
                     },
-                    isString(value) {
-                        if (typeof value !== 'string') {
-                            throw new Error('Title must be a string');
-                        }
-                    },
                     isUnique(value) {
                         return Project.findOne({ where: { title: value } }).then(project => {
                             if (project) {
@@ -37,13 +32,6 @@ module.exports = (sequelize, DataTypes) => {
             description: {
                 type: DataTypes.TEXT,
                 allowNull: true,
-                validate: {
-                    isText(value) {
-                        if (typeof value !== 'string') {
-                            throw new Error('Description must be a text');
-                        }
-                    },
-                },
             },
             cost: {
                 type: DataTypes.DECIMAL(15, 2),
@@ -62,53 +50,14 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.DATE,
                 defaultValue: DataTypes.NOW,
                 allowNull: true,
-                validate: {
-                    isDate: {
-                        args: true,
-                        msg: 'Start date must be a valid date',
-                    },
-                    beforeDueDate(value) {
-                        if (!value) {
-                            return;
-                        } else if (this.due_date && value >= this.due_date) {
-                            throw new Error('Start date must be before due date');
-                        }
-                    },
-                },
             },
             due_date: {
                 type: DataTypes.DATE,
                 allowNull: true,
-                validate: {
-                    isDate: {
-                        args: true,
-                        msg: 'Due date must be a valid date',
-                    },
-                    afterStartDate(value) {
-                        if (!value) {
-                            return;
-                        } else if (this.start_date && value <= this.start_date) {
-                            throw new Error('Due date must be after start date');
-                        }
-                    },
-                },
             },
             completion_date: {
                 type: DataTypes.DATE,
                 allowNull: true,
-                validate: {
-                    isDate: {
-                        args: true,
-                        msg: 'Completion date must be a valid date',
-                    },
-                    afterStartDate(value) {
-                        if (!value) {
-                            return;
-                        } else if (this.start_date && value < this.start_date) {
-                            throw new Error('Completion date must not be before start date');
-                        }
-                    },
-                },
             },
             status: {
                 type: DataTypes.ENUM(...STATUS),
@@ -145,20 +94,17 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.STRING,
                 allowNull: true,
             },
-            views: {
+            implementing_agency: {
+                type: DataTypes.STRING,
+                allowNull: true,
+            },
+            contract_term: {
                 type: DataTypes.INTEGER,
-                allowNull: false,
-                defaultValue: 0,
-                validate: {
-                    min: {
-                        args: [0],
-                        msg: 'Views cannot be negative',
-                    },
-                    isInt: {
-                        args: true,
-                        msg: 'Views must be an integer',
-                    },
-                },
+                allowNull: true,
+            },
+            contractor: {
+                type: DataTypes.STRING,
+                allowNull: true,
             },
         },
         {

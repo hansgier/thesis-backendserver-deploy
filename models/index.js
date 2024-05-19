@@ -29,10 +29,10 @@ db.comments = require('./Comment')(sequelize, DataTypes);
 db.updates = require('./Update')(sequelize, DataTypes);
 db.reactions = require('./Reaction')(sequelize, DataTypes);
 db.tags = require('./Tag')(sequelize, DataTypes);
-db.views = require('./View')(sequelize, DataTypes);
 db.announcements = require('./Announcement')(sequelize, DataTypes);
 db.conversations = require('./Conversation')(sequelize, DataTypes);
 db.messages = require('./Message')(sequelize, DataTypes);
+db.contacts = require('./Contact')(sequelize, DataTypes);
 
 associations(db);
 

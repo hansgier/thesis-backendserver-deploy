@@ -8,13 +8,6 @@ module.exports = (sequelize, DataTypes) => {
             remarks: {
                 type: DataTypes.TEXT,
                 allowNull: true,
-                validate: {
-                    isText(value) {
-                        if (typeof value !== 'string') {
-                            throw new Error('Remarks must be a text');
-                        }
-                    },
-                },
             },
             progress: {
                 type: DataTypes.INTEGER,

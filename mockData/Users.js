@@ -1161,10 +1161,10 @@ module.exports = [
         barangay_id: 110,
     },
     {
-        username: "Visitor",
-        password: "visit123456",
-        email: "visitor@visitor.com",
+        username: "Guest",
+        password: "guest123456",
+        email: "guest@guest.com",
         role: "guest",
         barangay_id: 111,
-    }
+    },
 ];

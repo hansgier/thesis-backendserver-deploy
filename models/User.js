@@ -16,10 +16,6 @@ module.exports = (sequelize, DataTypes) => {
                         args: true,
                         msg: 'Please provide a username',
                     },
-                    min: {
-                        args: [3],
-                        msg: 'Username must be at least 3 characters',
-                    },
                     max: {
                         args: [50],
                         msg: 'Username must be at most 50 characters',
@@ -61,7 +57,7 @@ module.exports = (sequelize, DataTypes) => {
                 defaultValue: 'resident',
                 validate: {
                     isIn: {
-                        args: [['admin', 'resident', 'barangay', 'visitor']],
+                        args: [['admin', 'assistant_admin', 'resident', 'barangay', 'guest']],
                         msg: 'Please provide a valid role',
                     },
                 },
@@ -71,10 +67,6 @@ module.exports = (sequelize, DataTypes) => {
             timestamps: true,
         },
     );
-
-    // User.prototype.comparePassword = async function (password) {
-    //     return await bcrypt.compare(password, this.password);
-    // };
 
     User.beforeBulkCreate(async (users) => {
         let userCount = await User.count({});
@@ -95,28 +87,6 @@ module.exports = (sequelize, DataTypes) => {
             user.password = await bcrypt.hash(user.password, 10);
         }
     });
-
-    // User.beforeCreate(async (user) => {
-    //     if (user.role === 'barangay') {
-    //         const existingBarangayUser = await User.findOne({
-    //             where: {
-    //                 barangay_id: user.barangay_id,
-    //                 role: 'barangay',
-    //             },
-    //         });
-    //         ThrowErrorIf(existingBarangayUser, 'Barangay has already an existing user', ConflictError);
-    //     }
-    //     const salt = await bcrypt.genSalt(10);
-    //     user.password = await bcrypt.hash(user.password, 10);
-    //     return user;
-    // });
-
-    // User.beforeSave(async (user) => {
-    //     if (user.changed('password')) {
-    //         const salt = await bcrypt.genSalt(10);
-    //         user.password = await bcrypt.hash(user.password, 10);
-    //     }
-    // });
 
     return User;
 };

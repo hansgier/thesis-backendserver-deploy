@@ -13,11 +13,6 @@ module.exports = (sequelize, DataTypes) => {
                         args: true,
                         msg: 'Please provide a title',
                     },
-                    isString(value) {
-                        if (typeof value !== 'string') {
-                            throw new Error('Title must be a string');
-                        }
-                    },
                 },
             },
             content: {

@@ -14,11 +14,6 @@ module.exports = (sequelize, DataTypes) => {
                         args: true,
                         msg: 'Please provide a url',
                     },
-                    isUrl(value) {
-                        if (typeof value !== 'string') {
-                            throw new Error('Url must be a string');
-                        }
-                    },
                 },
             },
             mime_type: {
@@ -29,11 +24,6 @@ module.exports = (sequelize, DataTypes) => {
                         args: true,
                         msg: 'Please provide a mime type',
                     },
-                    isMimeType(value) {
-                        if (typeof value !== 'string') {
-                            throw new Error('MIME type must be a string');
-                        }
-                    },
                 },
             },
             size: {
@@ -43,10 +33,6 @@ module.exports = (sequelize, DataTypes) => {
                     notEmpty: {
                         args: true,
                         msg: 'Please provide a size',
-                    },
-                    isInt: {
-                        args: true,
-                        msg: 'Size must be an integer',
                     },
                 },
             },
