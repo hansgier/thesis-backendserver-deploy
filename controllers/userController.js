@@ -61,7 +61,16 @@ const showCurrentUser = async (req, res) => {
     const user = await User.findByPk(req.user.userId);
 
     // Send the user object as a JSON response
-    res.status(StatusCodes.OK).json({ user });
+    res.status(StatusCodes.OK).json({
+        user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            password: user.password,
+            role: user.role,
+            barangay_id: user.barangay_id,
+        },
+    });
 };
 
 /**
@@ -110,7 +119,7 @@ const updateUser = async (req, res) => {
     // Save the updated user
     await user.save();
 
-    await user.reload()
+    await user.reload();
 
     // Create a new token for the user if username or email was updated
     // const tokenUser = createTokenUser(user);

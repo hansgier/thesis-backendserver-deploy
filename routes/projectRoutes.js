@@ -43,7 +43,7 @@ router.route('/')
 
 router.route('/:id')
     .get(authenticateUser, getProject)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateProject)
+    .patch(authenticateUser, authorizePermission('admin', 'barangay'), updateProject)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteProject);
 
 // ---------------------------COMMENTS--------------------------- //

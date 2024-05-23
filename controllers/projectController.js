@@ -175,12 +175,10 @@ const getProject = async (req, res) => {
     ThrowErrorIf(!id || id === ':id' || id === '', 'Id is required', BadRequestError);
 
     // Get the user ID from the request object
-    const { userId } = req.user;
+    // const { userId } = req.user;
 
     // Find the project by ID, including associated tags and barangays
     const project = await Project.findByPk(id, {
-        attributes: ['id', 'title', 'description', 'cost', 'start_date', 'due_date', 'completion_date', 'status', 'progress', 'funding_source', 'implementing_agency',
-            'contract_term', 'contractor', 'createdBy'],
         include: [
             {
                 model: Tag,

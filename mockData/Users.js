@@ -1,6 +1,6 @@
 module.exports = [
     {
-        username: "ormocPTSadmin",
+        username: "City Government",
         password: "1j28ifZa4#ge%raF",
         email: "systemadmin@admin.com",
         role: "admin",

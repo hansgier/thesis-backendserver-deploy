@@ -62,6 +62,22 @@ module.exports = (sequelize, DataTypes) => {
                     },
                 },
             },
+            accessToken: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            accessTokenExpiry: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
+            refreshToken: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            refreshTokenExpiry: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
         },
         {
             timestamps: true,

@@ -9,7 +9,7 @@ const createHashCrypto = require('./createHashCrypto');
 const sortControllerFunc = require('./sortControllerFunc');
 const paginationControllerFunc = require('./paginationControllerFunc');
 const comparePassword = require('./comparePassword');
-
+const { generateToken, verifyToken, generateTokens } = require("./jwtUtils");
 module.exports = {
     checkPermissions,
     createHash,
@@ -27,4 +27,7 @@ module.exports = {
     createHashCrypto,
     sortControllerFunc,
     paginationControllerFunc,
+    generateToken,
+    generateTokens,
+    verifyToken,
 };

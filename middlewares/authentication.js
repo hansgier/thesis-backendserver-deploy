@@ -1,6 +1,7 @@
 const { users: User } = require('../models');
-const { isTokenValid, attachCookiesToResponse } = require('../utils');
+const { isTokenValid, attachCookiesToResponse, verifyToken } = require('../utils');
 const { UnauthenticatedError, UnauthorizedError, ThrowErrorIf, NotFoundError } = require("../errors");
+const jwt = require('jsonwebtoken');
 
 /**
  * Middleware function to authenticate user
@@ -9,18 +10,44 @@ const { UnauthenticatedError, UnauthorizedError, ThrowErrorIf, NotFoundError } =
  * @param {Function} next - next function
  */
 const authenticateUser = async (req, res, next) => {
-    const userId = req.header('userId'); // Assuming userId is sent in the request header
-    ThrowErrorIf(!userId, 'User ID is required for authentication', UnauthenticatedError);
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ message: 'Authorization header missing' });
+    }
 
-    const user = await User.findByPk(userId);
-    ThrowErrorIf(!user, 'User not found', UnauthenticatedError);
+    const accessToken = authHeader.split(' ')[1];
+    try {
 
-    req.user = {
-        name: user.username,
-        userId: user.id,
-        role: user.role,
-    };
-    next();
+        const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+        const user = await User.findByPk(decoded.userId);
+        ThrowErrorIf(!user, "User not found", NotFoundError);
+        ThrowErrorIf(user.accessToken !== accessToken, "Invalid access token", UnauthenticatedError);
+        ThrowErrorIf(user.accessTokenExpiry < new Date(), "Access token expired", UnauthenticatedError);
+
+        req.user = {
+            id: user.id,
+            userId: user.id,
+            username: user.username,
+            barangay_id: user.barangay_id,
+            role: user.role,
+        };
+        next();
+    } catch (err) {
+        return res.status(401).json({ message: 'Invalid access token' });
+    }
+
+    // const userId = req.header('userId'); // Assuming userId is sent in the request header
+    // ThrowErrorIf(!userId, 'User ID is required for authentication', UnauthenticatedError);
+    //
+    // const user = await User.findByPk(userId);
+    // ThrowErrorIf(!user, 'User not found', UnauthenticatedError);
+    //
+    // req.user = {
+    //     name: user.username,
+    //     userId: user.id,
+    //     role: user.role,
+    // };
+    // next();
 };
 
 /**
