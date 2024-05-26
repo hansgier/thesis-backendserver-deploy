@@ -68,8 +68,8 @@ const addProject = async (req, res) => {
         };
 
         const newProject = await Project.create(projectData, { transaction: t });
-
         if (uploadedImages) {
+
             const mediaRecords = await Promise.all(
                 uploadedImages.map((image) =>
                     Media.create(
@@ -228,7 +228,6 @@ const getProject = async (req, res) => {
  * @returns {Promise<void>} - A promise that resolves when the project is updated.
  */
 const updateProject = async (req, res) => {
-    // Extract the id from the request parameters
     const { id } = req.params;
     const {
         title,
@@ -236,73 +235,96 @@ const updateProject = async (req, res) => {
         cost,
         start_date,
         due_date,
+        progress,
         completion_date,
+        status,
         funding_source,
         implementing_agency,
         contract_term,
         contractor,
-        status,
         tagsIds,
         barangayIds,
         uploadedImages,
     } = req.body;
 
-    // Throw an error if the id is missing or invalid
-    ThrowErrorIf(!id || id === ':id' || id === '', 'Id is required', BadRequestError);
-
-    // Start a Sequelize transaction
     const t = await sequelize.transaction();
 
     try {
-        // Find the project and the user with the given id
-        const project = await Project.findOne({ where: { id } }, { transaction: t });
-        const user = await User.findByPk(req.user.userId, { transaction: t });
-
-        // Throw an error if the project or the user is not found
-        ThrowErrorIf(!project, `Project ${ id } not found`, NotFoundError);
-        ThrowErrorIf(!user, 'User not found', NotFoundError);
-
-        // Check the permissions of the user
+        const project = await Project.findByPk(id, {
+            include: [
+                {
+                    model: Tag,
+                    as: 'tags',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] },
+                },
+                {
+                    model: Barangay,
+                    as: 'barangays',
+                    attributes: ['id', 'name'],
+                    through: { attributes: [] },
+                },
+                {
+                    model: Media,
+                    as: 'media',
+                    attributes: ['id', 'url'],
+                },
+            ],
+            transaction: t,
+        });
         checkPermissions(req.user, project.createdBy);
+        ThrowErrorIf(!project, `Project: ${ id } not found`, NotFoundError);
 
-        // Extract the project data from the request body
-        const projectData = req.body;
+        const { tags, barangays } = await validateAndUpdateProject(barangayIds, tagsIds);
 
-        // Validate and update the project data
-        await validateAndUpdateProject(project, projectData, user, t);
+        const projectData = {
+            title: title || project.title,
+            description: description || project.description,
+            cost: cost || project.cost,
+            progress: progress || project.progress,
+            start_date: start_date || project.start_date,
+            due_date: due_date || project.due_date,
+            completion_date: completion_date || project.completion_date,
+            status: status || project.status,
+            funding_source: funding_source || project.funding_source,
+            implementing_agency: implementing_agency || project.implementing_agency,
+            contract_term: contract_term || project.contract_term,
+            contractor: contractor || project.contractor,
+        };
 
-        // Include the tags and barangays in the project
-        const includeOptions = [
-            {
-                model: Tag,
-                as: 'tags',
-                attributes: ['id', 'name'],
-                through: { attributes: [] },
-            },
-            {
-                model: Barangay,
-                as: 'barangays',
-                attributes: ['id', 'name'],
-                through: { attributes: [] },
-            },
-            {
-                model: Media,
-                as: 'media',
-                attributes: ['id', 'url'],
-                through: { attributes: [] },
-            },
-        ];
+        await project.update(projectData, { transaction: t });
 
-        // Commit the transaction
+        if (uploadedImages) {
+            const newMediaRecords = await Promise.all(
+                uploadedImages.map((image) =>
+                    Media.create(
+                        {
+                            url: image.secure_url,
+                            mime_type: image.resource_type,
+                            size: image.bytes,
+                            project_id: project.id,
+                        },
+                        { transaction: t },
+                    ),
+                ),
+            );
+            await project.addMedia(newMediaRecords, { transaction: t });
+        }
+
+        if (tags) {
+            await project.setTags(tags, { transaction: t });
+        }
+
+        if (barangays) {
+            await project.setBarangays(barangays, { transaction: t });
+        }
+
+        await project.reload({ transaction: t });
+
         await t.commit();
 
-        // Send the response with the updated project
-        res.status(StatusCodes.OK).json({
-            msg: `Success! Project ${ id } updated`,
-            project,
-        });
+        res.status(StatusCodes.OK).json({ msg: 'Success! Project updated', project });
     } catch (error) {
-        // Rollback the transaction if an error occurs
         await t.rollback();
         console.error(error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ msg: 'Failed to update project', error: error.message });

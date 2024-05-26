@@ -81,105 +81,29 @@ const validationCreate = async (req, barangayIds, tagsIds) => {
 
 // -------------------------------- UPDATE -------------------------------- //
 
-const PROJECT_DATA_KEYS = {
-    title: "title",
-    description: "description",
-    cost: "cost",
-    progress: "progress",
-    start_date: "start_date",
-    due_date: "due_date",
-    completion_date: "completion_date",
-    status: "status",
-    barangayIds: "barangayIds",
-    tagsIds: "tagsIds",
-};
-
-/**
- * Validates and updates a project with the given data.
- *
- * @param {Object} project - The project object to validate and update.
- * @param {Object} projectData - The new project data to update with.
- * @param {Object} user - The user object.
- */
-const validateAndUpdateProject = async (project, projectData, user, t) => {
-    // Destructure the project data using the constant object
-    let {
-        [PROJECT_DATA_KEYS.title]: title,
-        [PROJECT_DATA_KEYS.description]: description,
-        [PROJECT_DATA_KEYS.cost]: cost,
-        [PROJECT_DATA_KEYS.progress]: progress,
-        [PROJECT_DATA_KEYS.start_date]: start_date,
-        [PROJECT_DATA_KEYS.due_date]: due_date,
-        [PROJECT_DATA_KEYS.completion_date]: completion_date,
-        [PROJECT_DATA_KEYS.status]: status,
-        [PROJECT_DATA_KEYS.funding_source]: funding_source,
-        [PROJECT_DATA_KEYS.implementing_agency]: implementing_agency,
-        [PROJECT_DATA_KEYS.contract_term]: contract_term,
-        [PROJECT_DATA_KEYS.contractor]: contractor,
-        [PROJECT_DATA_KEYS.barangayIds]: barangayIds,
-        [PROJECT_DATA_KEYS.tagsIds]: tagsIds,
-    } = projectData;
-
-    // Compare the input values of the project and projectData
-    await compareInputValues(project, projectData);
-
-    // Validate the barangay ids if they exist
+const validateAndUpdateProject = async (barangayIds, tagsIds) => {
+    let barangays = null;
+    let tags = null;
     if (barangayIds) {
-        await validateBarangayIds(barangayIds, user);
-    }
-
-    // Validate the tag ids if they exist
-    if (tagsIds) {
-        await validateTagIds(tagsIds);
-    }
-
-    // Handle image uploads
-    const uploadedImages = projectData.uploadedImages || [];
-    const existingMedia = await project.getMedia();
-
-    // Collect the public IDs of the media records to be removed
-    const publicIdsToDelete = existingMedia.map((media) => media.url.split('/').pop().split('.')[0]);
-
-    // Remove existing media records that are not present in the new uploads
-    const mediaToRemove = existingMedia.filter(
-        (media) => !uploadedImages.some((upload) => upload.secure_url.split('/').pop().split('.')[0] === media.url.split('/').pop().split('.')[0]),
-    );
-    await Promise.all(mediaToRemove.map((media) => media.destroy()));
-
-    // Delete the replaced images from Cloudinary
-    await Promise.all(publicIdsToDelete.map((publicId) => cloudinary.uploader.destroy(publicId)));
-
-    // Create new media records for the uploaded images
-    const newMedia = uploadedImages.filter(
-        (upload) => !existingMedia.some((media) => media.url.split('/').pop().split('.')[0] === upload.public_id),
-    );
-    const mediaRecords = await Promise.all(
-        newMedia.map((upload) => Media.create({
-            url: upload.secure_url,
-            mime_type: upload.resource_type,
-            size: upload.bytes,
-            project_id: project.id,
-        })),
-    );
-    await project.addMedia(mediaRecords);
-
-    progress = status === "completed" ? 100 : progress;
-    projectData = {
-        ...projectData,
-        progress,
-    };
-
-    // Update the project with the given data
-    await updateProject(project, projectData, t);
-
-    // Update the barangays and tags of the project if they exist
-    if (barangayIds) {
-        await project.setBarangays(barangayIds, { transaction: t });
+        const brgyIds = convertAndValidate(barangayIds, "Invalid barangay ID");
+        barangays = await Barangay.findAll({ where: { id: brgyIds } });
+        ThrowErrorIf(
+            barangays.length !== brgyIds.length,
+            "Some barangays do not exist",
+            NotFoundError,
+        );
     }
 
     if (tagsIds) {
-        await project.setTags(tagsIds, { transaction: t });
+        const tgIds = convertAndValidate(tagsIds, "Invalid tag ID");
+        tags = await Tag.findAll({ where: { id: tgIds } });
+        ThrowErrorIf(
+            tags.length !== tgIds.length,
+            "Some tags do not exist",
+            NotFoundError,
+        );
     }
+    return { barangays, tags };
 };
 
 /**

@@ -25,7 +25,7 @@ const {
 const {
     getAllMedia,
     updateMedia,
-    deleteAllMedia, deleteUploadedMedia, uploadMedia,
+    deleteAllMedia, deleteMedia, uploadMedia,
 } = require("../controllers/mediaController");
 const {
     createUpdate,
@@ -74,8 +74,10 @@ router.route('/media')
 router.route('/:projectId/media')
     .get(authenticateUser, getAllMedia)
     .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateMedia)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteUploadedMedia);
+    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia);
+
+router.route('/:projectId/media/:id')
+    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteMedia);
 
 
 // ---------------------------UPDATES--------------------------- //

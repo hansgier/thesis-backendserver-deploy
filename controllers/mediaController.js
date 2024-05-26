@@ -29,24 +29,6 @@ const uploadMedia = async (req, res) => {
     });
 };
 
-const deleteUploadedMedia = async (req, res) => {
-    try {
-        const { uploadedImages } = req.body;
-
-        // Delete each uploaded image from Cloudinary
-        await Promise.all(
-            uploadedImages.map((image) =>
-                cloudinary.uploader.destroy(image.url.split('/').pop().split('.')[0]),
-            ),
-        );
-
-        res.status(200).json({ message: 'Uploaded images deleted' });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Error deleting uploaded images' });
-    }
-};
-
 /**
  * Retrieves all media based on the provided parameters.
  *
@@ -100,82 +82,195 @@ const getAllMedia = async (req, res) => {
  */
 const updateMedia = async (req, res) => {
     const { projectId, updateId } = req.params;
-    const files = req.file;
+    const { newUploadedImages } = req.body;
 
     try {
         let result;
+        ThrowErrorIf(!projectId, "ProjectId is required", BadRequestError);
 
-        // Check if files were uploaded
-        if (!files) {
-            return res.status(StatusCodes.OK).json({ msg: "You have not uploaded any files" });
-        }
-
-        if (updateId && projectId) {
-            result = await sequelize.transaction(async (t) => {
-                // Find the update
-                const update = await Update.findOne({
-                    where: { project_id: projectId, id: updateId },
-                    transaction: t,
-                });
-
-                // Throw an error if update is not found
-                ThrowErrorIf(!update, "Update not found", NotFoundError);
-
-                // Delete existing media files
-                const updateMedia = await update.getMedia({ transaction: t });
-                await deleteMediaFiles(updateMedia, t);
-
-                // Create new media records and associate them with the update
-                const newMediaRecords = await createMediaRecords(files, projectId, updateId, t);
-                await update.setMedia(newMediaRecords, { transaction: t });
-
-                return update;
+        result = await sequelize.transaction(async (t) => {
+            // Find the project
+            const project = await Project.findByPk(projectId, {
+                transaction: t,
+                attributes: ["id", "title"],
+                include: [
+                    {
+                        model: Media,
+                        as: "media",
+                        attributes: ["id", "url", "mime_type", "size", "createdAt", "updatedAt"],
+                    },
+                ],
             });
-        } else if (projectId) {
-            result = await sequelize.transaction(async (t) => {
-                // Find the project
-                const project = await Project.findByPk(projectId, {
-                    transaction: t,
-                    attributes: ["id"],
-                    include: [
-                        {
-                            model: Media,
-                            as: "media",
-                            attributes: ["url", "mime_type", "size", "createdAt", "updatedAt"],
-                        },
-                    ],
-                });
 
-                // Throw an error if project is not found
-                ThrowErrorIf(!project, "Project not found", NotFoundError);
+            // Throw an error if project is not found
+            ThrowErrorIf(!project, "Project not found", NotFoundError);
 
-                // Delete existing media files
-                const projectMedia = await project.getMedia({ transaction: t });
-                await deleteMediaFiles(projectMedia, t);
+            // Check if the user has permissions to update media in the project
+            checkPermissions(req.user, project.createdBy);
 
-                // Create new media records and associate them with the project
-                const newMediaRecords = await createMediaRecords(files, projectId, null, t);
-                await project.setMedia(newMediaRecords, { transaction: t });
+            // Get all existing media associated with the project
+            const existingMedia = project.media;
 
-                return project;
-            });
-        } else {
-            new BadRequestError('Id is required');
-        }
+            // Delete existing media files that are not part of the new uploads
+            const existingMediaToDelete = existingMedia.filter(media => !newUploadedImages.some(upload => upload.secure_url === media.url));
+            await deleteMediaFiles(existingMediaToDelete, t);
+
+            // Create new media records for new uploads
+            const newMediaRecords = await Promise.all(newUploadedImages.map(upload => Media.create({
+                url: upload.secure_url,
+                mime_type: upload.resource_type,
+                size: upload.bytes,
+            }, { transaction: t })));
+
+            // Associate the new media records with the project
+            await project.setMedia(newMediaRecords, { transaction: t });
+
+            return project;
+        });
 
         // Reload the result to include the updated media
         await result.reload();
 
         // Send the response
         res.status(StatusCodes.OK).json({
-            [`${ projectId && updateId ? "update" : "project" }`]: {
+            project: {
                 id: result.id,
                 media: result.media,
             },
         });
     } catch (e) {
-        // Delete any uploaded files in case of an error
-        await deleteUploadedFiles(files);
+        throw e;
+    }
+
+    // const { projectId, updateId } = req.params;
+    // const files = req.file;
+    //
+    // try {
+    //     let result;
+    //
+    //     // Check if files were uploaded
+    //     if (!files) {
+    //         return res.status(StatusCodes.OK).json({ msg: "You have not uploaded any files" });
+    //     }
+    //
+    //     if (updateId && projectId) {
+    //         result = await sequelize.transaction(async (t) => {
+    //             // Find the update
+    //             const update = await Update.findOne({
+    //                 where: { project_id: projectId, id: updateId },
+    //                 transaction: t,
+    //             });
+    //
+    //             // Throw an error if update is not found
+    //             ThrowErrorIf(!update, "Update not found", NotFoundError);
+    //
+    //             // Delete existing media files
+    //             const updateMedia = await update.getMedia({ transaction: t });
+    //             await deleteMediaFiles(updateMedia, t);
+    //
+    //             // Create new media records and associate them with the update
+    //             const newMediaRecords = await createMediaRecords(files, projectId, updateId, t);
+    //             await update.setMedia(newMediaRecords, { transaction: t });
+    //
+    //             return update;
+    //         });
+    //     } else if (projectId) {
+    //         result = await sequelize.transaction(async (t) => {
+    //             // Find the project
+    //             const project = await Project.findByPk(projectId, {
+    //                 transaction: t,
+    //                 attributes: ["id"],
+    //                 include: [
+    //                     {
+    //                         model: Media,
+    //                         as: "media",
+    //                         attributes: ["url", "mime_type", "size", "createdAt", "updatedAt"],
+    //                     },
+    //                 ],
+    //             });
+    //
+    //             // Throw an error if project is not found
+    //             ThrowErrorIf(!project, "Project not found", NotFoundError);
+    //
+    //             // Delete existing media files
+    //             const projectMedia = await project.getMedia({ transaction: t });
+    //             await deleteMediaFiles(projectMedia, t);
+    //
+    //             // Create new media records and associate them with the project
+    //             const newMediaRecords = await createMediaRecords(files, projectId, null, t);
+    //             await project.setMedia(newMediaRecords, { transaction: t });
+    //
+    //             return project;
+    //         });
+    //     } else {
+    //         new BadRequestError('Id is required');
+    //     }
+    //
+    //     // Reload the result to include the updated media
+    //     await result.reload();
+    //
+    //     // Send the response
+    //     res.status(StatusCodes.OK).json({
+    //         [`${ projectId && updateId ? "update" : "project" }`]: {
+    //             id: result.id,
+    //             media: result.media,
+    //         },
+    //     });
+    // } catch (e) {
+    //     // Delete any uploaded files in case of an error
+    //     await deleteUploadedFiles(files);
+    //     throw e;
+    // }
+};
+
+const deleteMedia = async (req, res) => {
+    const { projectId, updateId, id } = req.params;
+
+    try {
+        await sequelize.transaction(async (t) => {
+            // Find the project by its ID
+            const project = await Project.findByPk(projectId, { transaction: t });
+            ThrowErrorIf(!project, "Project not found", NotFoundError);
+
+            // Check if the user has permissions to delete media in the project
+            checkPermissions(req.user, project.createdBy);
+
+            let media;
+
+            // If updateId is provided, find the media associated with the update
+            if (updateId) {
+                const update = await Update.findOne({
+                    where: { project_id: projectId, id: updateId },
+                    transaction: t,
+                });
+                ThrowErrorIf(!update, "Update not found", NotFoundError);
+
+                media = await Media.findOne({
+                    where: { id, update_id: updateId },
+                    transaction: t,
+                });
+            }
+            // If updateId is not provided, find the media associated with the project
+            else {
+                media = await Media.findOne({
+                    where: { id, project_id: projectId },
+                    transaction: t,
+                });
+            }
+
+            // Throw an error if media is not found
+            ThrowErrorIf(!media, "Media not found", NotFoundError);
+
+            // Delete the media file from Cloudinary
+            const public_id = media.url.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(public_id);
+
+            // Delete the media record from the database
+            await media.destroy({ transaction: t });
+        });
+
+        res.status(StatusCodes.OK).json({ msg: 'Media deleted successfully' });
+    } catch (e) {
         throw e;
     }
 };
@@ -248,5 +343,5 @@ module.exports = {
     updateMedia,
     deleteAllMedia,
     uploadMedia,
-    deleteUploadedMedia,
+    deleteMedia,
 };
