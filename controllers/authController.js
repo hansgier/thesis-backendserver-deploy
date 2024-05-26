@@ -78,7 +78,7 @@ const login = async (req, res) => {
     user.refreshTokenExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
     await user.save();
 
-    res.status(StatusCodes.OK).json({ msg: 'Success! You are logged in', accessToken });
+    res.status(StatusCodes.OK).json({ msg: 'Success! You are logged in', accessToken, user });
 };
 
 const logout = async (req, res) => {
