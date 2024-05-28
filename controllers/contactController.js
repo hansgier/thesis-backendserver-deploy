@@ -2,6 +2,7 @@ const { sequelize, barangays: Barangay, users: User, contacts: Contact, Project 
 const { StatusCodes } = require("http-status-codes");
 const { ThrowErrorIf, NotFoundError, BadRequestError } = require("../errors");
 const { checkPermissions } = require("../utils");
+const cloudinary = require("cloudinary").v2;
 
 
 const getAllContacts = async (req, res) => {
@@ -90,9 +91,14 @@ const deleteContact = async (req, res) => {
 
     checkPermissions(req.user, contact.created_by);
 
+    if (contact.logo) {
+        const publicId = contact.logo.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy(publicId);
+    }
+
     await contact.destroy();
 
-    res.status(StatusCodes.OK).json({ msg: `Delete ID: ${ id } deleted` });
+    res.status(StatusCodes.OK).json({ msg: `Contact ID: ${ id } deleted` });
 };
 
 const deleteAllContacts = async (req, res) => {
@@ -104,6 +110,18 @@ const deleteAllContacts = async (req, res) => {
 
     // If no contacts found, return a success message
     if (totalCount < 1) return res.status(StatusCodes.OK).json({ msg: 'No contacts to be deleted' });
+
+    // Get all contacts to delete their logos from Cloudinary
+    const contacts = await Contact.findAll({ where, attributes: ['logo'] });
+    // Delete logos from Cloudinary in parallel
+    const deleteLogosPromises = contacts.map(async (contact) => {
+        if (contact.logo) {
+            const publicId = contact.logo.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(publicId);
+        }
+    });
+
+    await Promise.all(deleteLogosPromises);
 
     await Contact.destroy({ where });
     res.status(StatusCodes.OK).json({ msg: 'All contacts deleted' });

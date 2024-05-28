@@ -53,6 +53,7 @@ const announcementRouter = require('./routes/announcementRoutes');
 const populateRouter = require('./routes/1populateRoutes');
 const chatRouter = require('./routes/chatRoutes');
 const contactRouter = require('./routes/contactRoutes');
+const mediaRouter = require('./routes/mediaRoutes');
 
 // ------------------- MIDDLEWARES ------------------- //
 
@@ -80,6 +81,7 @@ app.use('/api/announcements', announcementRouter);
 app.use('/api/populate', populateRouter);
 app.use('/api/conversations', chatRouter);
 app.use('/api/contacts', contactRouter);
+app.use('/api/media', mediaRouter);
 
 
 // ------------------- ERROR MIDDLEWARES ------------------- //

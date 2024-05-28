@@ -225,6 +225,13 @@ const updateMedia = async (req, res) => {
 
 const deleteMedia = async (req, res) => {
     const { projectId, updateId, id } = req.params;
+    const { url } = req.body;
+
+    if (url) {
+        const public_id = url.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy(public_id);
+        return res.status(StatusCodes.OK).json({ msg: 'Media deleted successfully' });
+    }
 
     try {
         await sequelize.transaction(async (t) => {
