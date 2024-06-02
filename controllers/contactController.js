@@ -66,11 +66,11 @@ const updateContact = async (req, res) => {
         ThrowErrorIf(!contact, 'Contact not found', NotFoundError);
         checkPermissions(req.user, contact.created_by);
 
-        contact.name = name || contact.name;
-        contact.logo = logo || contact.logo;
-        contact.address = address || contact.address;
-        contact.emails = emails || contact.emails;
-        contact.phones = phones || contact.phones;
+        contact.name = name
+        contact.logo = logo
+        contact.address = address
+        contact.emails = emails
+        contact.phones = phones
 
         await contact.save({ transaction: t });
         await t.commit();
