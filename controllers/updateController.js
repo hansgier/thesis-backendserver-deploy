@@ -91,7 +91,6 @@ const createUpdate = async (req, res) => {
 
             // Add the media records to the update
             await update.addMedia(mediaRecords, { transaction: t });
-
         }
 
         // Commit the transaction
@@ -294,9 +293,7 @@ const deleteUpdate = async (req, res) => {
                 await cloudinary.uploader.destroy(publicId);
             }),
         );
-
     }
-
 
     // Delete the update
     await update.destroy();

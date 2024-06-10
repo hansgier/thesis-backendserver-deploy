@@ -9,30 +9,31 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.TEXT,
                 allowNull: true,
             },
-            progress: {
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                defaultValue: 0,
-                validate: {
-                    min: {
-                        args: [0],
-                        msg: 'Progress cannot be negative',
-                    },
-                    max: {
-                        args: [100],
-                        msg: 'Progress cannot exceed 100',
-                    },
-                    isInt: {
-                        args: true,
-                        msg: 'Progress must be an integer',
-                    },
-                },
-            },
+            // progress: {
+            //     type: DataTypes.INTEGER,
+            //     allowNull: false,
+            //     defaultValue: 0,
+            //     validate: {
+            //         min: {
+            //             args: [0],
+            //             msg: 'Progress cannot be negative',
+            //         },
+            //         max: {
+            //             args: [100],
+            //             msg: 'Progress cannot exceed 100',
+            //         },
+            //         isInt: {
+            //             args: true,
+            //             msg: 'Progress must be an integer',
+            //         },
+            //     },
+            // },
         },
         {
             timestamps: true,
         },
     );
+
 
     return Update;
 };
