@@ -97,5 +97,8 @@ router.route('/:projectId/update/:updateId/media')
     .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateMedia)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia);
 
+router.route('/:projectId/update/:updateId/media/:id')
+    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteMedia);
+
 
 module.exports = router;

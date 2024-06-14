@@ -224,10 +224,8 @@ const updateMedia = async (req, res) => {
 };
 
 const deleteMedia = async (req, res) => {
-    const { id } = req.params;
+    const { id, projectId, updateId } = req.params;
     const url = req.headers.media_url;
-    const projectId = req.headers.projectId;
-    const updateId = req.headers.updateId;
 
     ThrowErrorIf(!url, "Url is required", BadRequestError);
 
@@ -238,52 +236,55 @@ const deleteMedia = async (req, res) => {
         return res.status(StatusCodes.OK).json({ msg: 'Media deleted successfully' });
     }
 
-
+    const t = await sequelize.transaction();
     try {
-        await sequelize.transaction(async (t) => {
-            // Find the project by its ID
-            const project = await Project.findByPk(projectId, { transaction: t });
-            ThrowErrorIf(!project, "Project not found", NotFoundError);
+        // Find the project by its ID
+        const project = await Project.findByPk(projectId, { transaction: t });
+        ThrowErrorIf(!project, "Project not found", NotFoundError);
 
-            // Check if the user has permissions to delete media in the project
-            checkPermissions(req.user, project.createdBy);
+        // Check if the user has permissions to delete media in the project
+        checkPermissions(req.user, project.createdBy);
 
-            let media;
+        let media;
 
-            // If updateId is provided, find the media associated with the update
-            if (updateId) {
-                const update = await Update.findOne({
-                    where: { project_id: projectId, id: updateId },
-                    transaction: t,
-                });
-                ThrowErrorIf(!update, "Update not found", NotFoundError);
+        // If updateId is provided, find the media associated with the update
+        if (updateId) {
+            const update = await Update.findOne({
+                where: { project_id: projectId, id: updateId },
+                transaction: t,
+            });
+            ThrowErrorIf(!update, "Update not found", NotFoundError);
 
-                media = await Media.findOne({
-                    where: { id, update_id: updateId, url: url },
-                    transaction: t,
-                });
-            }
-            // If updateId is not provided, find the media associated with the project
-            else {
-                media = await Media.findOne({
-                    where: { id, project_id: projectId, url: url },
-                    transaction: t,
-                });
-            }
+            media = await Media.findOne({
+                where: { id, update_id: updateId },
+                transaction: t,
+            });
+        }
+        // If updateId is not provided, find the media associated with the project
+        else {
+            media = await Media.findOne({
+                where: { id, project_id: projectId },
+                transaction: t,
+            });
+        }
 
-            // Throw an error if media is not found
-            ThrowErrorIf(!media, "Media not found", NotFoundError);
 
-            // Delete the media file from Cloudinary
-            const public_id = media.url.split('/').pop().split('.')[0];
-            await cloudinary.uploader.destroy(public_id);
+        // Throw an error if media is not found
+        ThrowErrorIf(!media, "Media not found", NotFoundError);
 
-            // Delete the media record from the database
-            await media.destroy({ transaction: t });
-        });
+        // Delete the media file from Cloudinary
+        const public_id = media.url.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy(public_id);
+
+        // Delete the media record from the database
+        await media.destroy({ transaction: t });
+
+        await t.commit();
 
         res.status(StatusCodes.OK).json({ msg: 'Media deleted successfully' });
     } catch (e) {
+        await t.rollback();
+        console.log("error");
         throw e;
     }
 };
@@ -299,8 +300,9 @@ const deleteAllMedia = async (req, res) => {
     const { projectId, updateId } = req.params;
 
     // If both projectId and updateId are provided
-    if (projectId && updateId) {
-        await sequelize.transaction(async (t) => {
+    const t = await sequelize.transaction();
+    try {
+        if (projectId && updateId) {
             // Find the project by its ID
             const project = await Project.findByPk(projectId, { transaction: t });
             ThrowErrorIf(!project, "Project not found", NotFoundError);
@@ -319,11 +321,9 @@ const deleteAllMedia = async (req, res) => {
 
             // Delete the media files
             await deleteMediaFiles(updateMedia, t);
-        });
-    }
-    // If only projectId is provided
-    else if (projectId) {
-        await sequelize.transaction(async (t) => {
+        }
+        // If only projectId is provided
+        else if (projectId) {
             // Find the project by its ID
             const project = await Project.findByPk(projectId, { transaction: t });
             ThrowErrorIf(!project, "Project not found", NotFoundError);
@@ -336,19 +336,25 @@ const deleteAllMedia = async (req, res) => {
 
             // Delete the media files
             await deleteMediaFiles(projectMedia, t);
+        }
+        // If neither projectId nor updateId is provided
+        else {
+            throw new BadRequestError('Id is required');
+        }
+
+        await t.commit();
+
+        // Send back a success message to the client
+        res.status(StatusCodes.OK).json({
+            msg: projectId && updateId
+                ? 'All update media deleted'
+                : 'All project media deleted',
         });
-    }
-    // If neither projectId nor updateId is provided
-    else {
-        throw new BadRequestError('Id is required');
+    } catch (e) {
+        await t.rollback();
+        throw e;
     }
 
-    // Send back a success message to the client
-    res.status(StatusCodes.OK).json({
-        msg: projectId && updateId
-            ? 'All update media deleted'
-            : 'All project media deleted',
-    });
 };
 
 module.exports = {
