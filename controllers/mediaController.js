@@ -357,10 +357,42 @@ const deleteAllMedia = async (req, res) => {
 
 };
 
+const deleteAllUnassociatedMedia = async (req, res) => {
+    // Retrieve all media files from Cloudinary
+    const { resources } = await cloudinary.search
+        .expression('resource_type:auto')
+        .sort_by('public_id', 'desc')
+        .max_results(30)
+        .execute();
+
+    // Retrieve all media URLs from the database
+    const databaseMediaUrls = await Media.findAll({
+        attributes: ['url'],
+        raw: true,
+    });
+
+    // Convert database URLs to an array
+    const databaseUrls = databaseMediaUrls.map((media) => media.url);
+
+    // Find unassociated media by comparing Cloudinary resources with database URLs
+    const unassociatedMedia = resources.filter(
+        (resource) => !databaseUrls.includes(resource.secure_url),
+    );
+
+    // Delete unassociated media from Cloudinary
+    for (const media of unassociatedMedia) {
+        const publicId = media.public_id;
+        await cloudinary.uploader.destroy(publicId);
+    }
+
+    res.status(StatusCodes.OK).json({ message: 'Unassociated media deleted successfully' });
+};
+
 module.exports = {
     getAllMedia,
     updateMedia,
     deleteAllMedia,
     uploadMedia,
     deleteMedia,
+    deleteAllUnassociatedMedia,
 };
