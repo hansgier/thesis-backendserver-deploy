@@ -295,6 +295,11 @@ const updateProject = async (req, res) => {
         await project.update(projectData, { transaction: t });
 
         if (uploadedImages) {
+            await Media.destroy({
+                where: {
+                    project_id: project.id,
+                },
+            });
             const newMediaRecords = await Promise.all(
                 uploadedImages.map((image) =>
                     Media.create(
