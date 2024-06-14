@@ -229,11 +229,15 @@ const deleteMedia = async (req, res) => {
     const projectId = req.headers.projectId;
     const updateId = req.headers.updateId;
 
-    if (url) {
+    ThrowErrorIf(!url, "Url is required", BadRequestError);
+
+
+    if (!projectId && !updateId && url) {
         const public_id = url.split('/').pop().split('.')[0];
         await cloudinary.uploader.destroy(public_id);
         return res.status(StatusCodes.OK).json({ msg: 'Media deleted successfully' });
     }
+
 
     try {
         await sequelize.transaction(async (t) => {
@@ -255,14 +259,14 @@ const deleteMedia = async (req, res) => {
                 ThrowErrorIf(!update, "Update not found", NotFoundError);
 
                 media = await Media.findOne({
-                    where: { id, update_id: updateId },
+                    where: { id, update_id: updateId, url: url },
                     transaction: t,
                 });
             }
             // If updateId is not provided, find the media associated with the project
             else {
                 media = await Media.findOne({
-                    where: { id, project_id: projectId },
+                    where: { id, project_id: projectId, url: url },
                     transaction: t,
                 });
             }
