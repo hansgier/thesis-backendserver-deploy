@@ -224,8 +224,10 @@ const updateMedia = async (req, res) => {
 };
 
 const deleteMedia = async (req, res) => {
-    const { projectId, updateId, id } = req.params;
+    const { id } = req.params;
     const url = req.headers.media_url;
+    const projectId = req.headers.projectId;
+    const updateId = req.headers.updateId;
 
     if (url) {
         const public_id = url.split('/').pop().split('.')[0];

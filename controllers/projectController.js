@@ -200,7 +200,7 @@ const getProject = async (req, res) => {
             {
                 model: Media,
                 as: 'media',
-                attributes: ['id', 'url'],
+                attributes: ['id', 'url', 'mime_type', 'size'],
             },
             {
                 model: Reaction,
