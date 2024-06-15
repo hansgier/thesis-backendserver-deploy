@@ -8,7 +8,8 @@ const {
 const { ThrowErrorIf, NotFoundError, BadRequestError } = require("../errors");
 const { getMediaQuery } = require("../utils/helpers");
 const { deleteMediaFiles, createMediaRecords, deleteUploadedFiles } = require("../utils/helpers/mediaHelpers");
-const { checkPermissions } = require("../utils");
+const { checkPermissions, cacheExpiries } = require("../utils");
+const redis = require("../config/redis");
 const cloudinary = require("cloudinary").v2;
 
 const uploadMedia = async (req, res) => {
@@ -20,6 +21,7 @@ const uploadMedia = async (req, res) => {
                 msg: "Error uploading the image",
             });
         } else {
+            redis.del("media");
             return res.status(StatusCodes.OK).json({
                 success: true,
                 msg: "Image uploaded successfully",
@@ -68,6 +70,8 @@ const getAllMedia = async (req, res) => {
         result = await getMediaResult(Project, projectId, options);
     else
         throw new BadRequestError('Id is required');
+
+    await redis.set("media", JSON.stringify(result), "EX", cacheExpiries.media);
 
     // Send the result as a JSON response
     res.status(StatusCodes.OK).json({ result });
@@ -280,6 +284,7 @@ const deleteMedia = async (req, res) => {
         await media.destroy({ transaction: t });
 
         await t.commit();
+        await redis.del("media");
 
         res.status(StatusCodes.OK).json({ msg: 'Media deleted successfully' });
     } catch (e) {
@@ -343,6 +348,7 @@ const deleteAllMedia = async (req, res) => {
         }
 
         await t.commit();
+        await redis.del("media");
 
         // Send back a success message to the client
         res.status(StatusCodes.OK).json({
@@ -384,7 +390,7 @@ const deleteAllUnassociatedMedia = async (req, res) => {
         const publicId = media.public_id;
         await cloudinary.uploader.destroy(publicId);
     }
-
+    await redis.del("media");
     res.status(StatusCodes.OK).json({ message: 'Unassociated media deleted successfully' });
 };
 

@@ -28,4 +28,19 @@ const REACTIONS = [
     'dislike',
 ];
 
-module.exports = { tokenExpirations, TAGS, REACTIONS, STATUS };
+const cacheExpiries = {
+    projects: 86400, //1 day
+    single_project: 86400, //1 day
+    announcements: 86400, //1 day
+    contacts: 86400, //1 day
+    conversations: 3600, // 1 hr
+    messages: 60, // 1 min
+    comments: 60, // 1 min
+    reactions: 60, // 1 min
+    updates: 86400, // 1 hr
+    media: 86400, // 1 day
+    users: 86400, // 1 day
+    barangays: 86400, // 1 day
+};
+
+module.exports = { tokenExpirations, TAGS, REACTIONS, STATUS, cacheExpiries };

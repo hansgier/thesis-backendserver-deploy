@@ -1,6 +1,6 @@
 const checkPermissions = require("./checkPermissions");
 const createHash = require('./createHash');
-const { tokenExpirations, TAGS, REACTIONS, STATUS } = require("./constants");
+const { tokenExpirations, TAGS, REACTIONS, STATUS, cacheExpiries } = require("./constants");
 const { attachCookiesToResponse, createJWT, isTokenValid } = require('./jwt');
 const createTokenUser = require('./createTokenUser');
 const sendEmail = require('./sendEmail');
@@ -30,4 +30,5 @@ module.exports = {
     generateToken,
     generateTokens,
     verifyToken,
+    cacheExpiries,
 };

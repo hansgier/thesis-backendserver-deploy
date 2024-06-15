@@ -35,21 +35,22 @@ const {
     deleteUpdate,
     editUpdate,
 } = require("../controllers/updateController");
+const { checkProjectsCache, checkCommentsCache, checkSingleProjectCache } = require("../middlewares/checkCache");
 
 router.route('/')
-    .get(authenticateUser, getAllProjects)
+    .get(authenticateUser, checkProjectsCache, getAllProjects)
     .post(authenticateUser, authorizePermission('admin', 'barangay'), addProject)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllProjects);
 
 router.route('/:id')
-    .get(authenticateUser, getProject)
+    .get(authenticateUser, checkSingleProjectCache, getProject)
     .patch(authenticateUser, authorizePermission('admin', 'barangay'), updateProject)
     .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteProject);
 
 // ---------------------------COMMENTS--------------------------- //
 
 router.route('/:id/comments')
-    .get(authenticateUser, getAllProjectComments)
+    .get(authenticateUser, checkCommentsCache, getAllProjectComments)
     .post(authenticateUser, addComment);
 
 router.route('/:id/comments/:commentId')

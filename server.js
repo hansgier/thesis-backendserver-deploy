@@ -25,6 +25,7 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cookie', 'Connection', 'User-Agent', 'Host', 'Content-Length', 'Accept-Encoding'],
 };
+const Redis = require("redis");
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const { cloudinaryConfig } = require('./config/cloudinaryConfig');
