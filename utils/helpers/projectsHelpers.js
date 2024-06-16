@@ -421,7 +421,7 @@ const getProjectQuery = ({
             {
                 model: Reaction,
                 as: 'reactions',
-                attributes: ['id', 'reaction_type'],
+                attributes: ['id', 'reaction_type', 'reacted_by'],
             },
         ],
         order: [['createdAt', 'DESC']],
