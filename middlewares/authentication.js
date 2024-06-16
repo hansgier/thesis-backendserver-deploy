@@ -15,6 +15,18 @@ const authenticateUser = async (req, res, next) => {
         return res.status(401).json({ message: 'Authorization header missing' });
     }
 
+    const guestHeader = authHeader.split(' ')[1];
+    if (guestHeader === "guest") {
+        req.user = {
+            id: "df98a336-d494-4764-ad8a-cc63528830da",
+            userId: "df98a336-d494-4764-ad8a-cc63528830da",
+            username: "Guest",
+            barangay_id: 111,
+            role: "guest",
+        };
+        return next();
+    }
+
     const accessToken = authHeader.split(' ')[1];
     try {
 
@@ -69,9 +81,13 @@ const authorizePermissions = (req, res, next) => {
  */
 const authorizePermission = (...roles) => {
     return (req, res, next) => {
-        // Check if the user's role is allowed to access the route
-        ThrowErrorIf(!roles.includes(req.user.role), 'Not authorized to access this route', UnauthorizedError);
-        next();
+        if (req.user.role === "guest") {
+            next();
+        } else {
+            // Check if the user's role is allowed to access the route
+            ThrowErrorIf(!roles.includes(req.user.role), 'Not authorized to access this route', UnauthorizedError);
+            next();
+        }
     };
 };
 

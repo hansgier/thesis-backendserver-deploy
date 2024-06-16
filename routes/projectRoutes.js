@@ -70,36 +70,36 @@ router.route('/:projectId/reactions/:reactionId')
 // ---------------------------MEDIA--------------------------- //
 
 router.route('/media')
-    .post(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), uploadMedia);
+    .post(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), upload.single('image'), uploadMedia);
 
 router.route('/:projectId/media')
     .get(authenticateUser, getAllMedia)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateMedia)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia);
+    .patch(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), upload.single('image'), updateMedia)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteAllMedia);
 
 router.route('/:projectId/media/:id')
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteMedia);
+    .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteMedia);
 
 
 // ---------------------------UPDATES--------------------------- //
 
 router.route('/:projectId/update')
     .get(authenticateUser, getAllUpdate)
-    .post(authenticateUser, authorizePermission('admin', 'barangay'), createUpdate)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllUpdate);
+    .post(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), createUpdate)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteAllUpdate);
 
 router.route('/:projectId/update/:id')
     .get(authenticateUser, getUpdate)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), editUpdate)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteUpdate);
+    .patch(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), editUpdate)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteUpdate);
 
 router.route('/:projectId/update/:updateId/media')
     .get(authenticateUser, getAllMedia)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), upload.single('image'), updateMedia)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllMedia);
+    .patch(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), upload.single('image'), updateMedia)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteAllMedia);
 
 router.route('/:projectId/update/:updateId/media/:id')
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteMedia);
+    .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteMedia);
 
 
 module.exports = router;

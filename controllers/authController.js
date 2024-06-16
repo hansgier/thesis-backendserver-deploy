@@ -83,6 +83,10 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
     const { user } = req;
+    if (user.role === "guest") {
+        return res.status(StatusCodes.OK).json({ msg: 'Success! You are logged out' });
+    }
+
     const curr_user = await User.findByPk(user.userId);
     ThrowErrorIf(!curr_user, 'User not found', NotFoundError);
 

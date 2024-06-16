@@ -11,12 +11,12 @@ const router = require('express').Router();
 
 router.route('/')
     .get(authenticateUser, getAllAnnouncements)
-    .post(authenticateUser, authorizePermission('admin', 'barangay'), postAnnouncement)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAllAnnouncements);
+    .post(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), postAnnouncement)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteAllAnnouncements);
 
 router.route('/:id')
     .get(authenticateUser, getAnnouncement)
-    .patch(authenticateUser, authorizePermission('admin', 'barangay'), editAnnouncement)
-    .delete(authenticateUser, authorizePermission('admin', 'barangay'), deleteAnnouncement);
+    .patch(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), editAnnouncement)
+    .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteAnnouncement);
 
 module.exports = router;
