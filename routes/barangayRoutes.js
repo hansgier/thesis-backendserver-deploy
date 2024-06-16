@@ -10,7 +10,7 @@ const {
 } = require('../controllers/barangayController');
 
 router.route('/')
-    .get(authenticateUser, getAllBarangays)
+    .get(getAllBarangays)
     .post(authenticateUser, authorizePermissions, addBarangay)
     .delete(authenticateUser, authorizePermissions, deleteAllBarangays);
 
