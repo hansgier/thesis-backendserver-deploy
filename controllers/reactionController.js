@@ -9,6 +9,7 @@ const {
     REACTION_TARGETS, validateInputForEdit, editProjectReaction, editCommentReaction, deleteProjectReaction,
     deleteCommentReaction,
 } = require("../utils/helpers");
+const redis = require("../config/redis");
 
 /**
  * Create a reaction for a project or comment
@@ -113,6 +114,8 @@ const deleteAllReactions = async (req, res) => {
     if (count < 1) return res.status(StatusCodes.OK).json({ msg: 'No reactions found' });
     else {
         await Reaction.destroy({ where: {} });
+        await redis.del(["single_project, projects"]);
+        
         res.status(StatusCodes.OK).json({ msg: 'Deleted all reactions' });
     }
 };
