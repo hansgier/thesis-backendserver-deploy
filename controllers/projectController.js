@@ -130,7 +130,7 @@ const getAllProjects = async (req, res) => {
 
         // Get the reactions for the project
         const reactions = await project.getReactions({
-            attributes: ['reaction_type'],
+            attributes: ['reaction_type', 'reacted_by'],
             group: ['reaction_type'],
         });
 
