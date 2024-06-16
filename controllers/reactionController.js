@@ -114,8 +114,8 @@ const deleteAllReactions = async (req, res) => {
     if (count < 1) return res.status(StatusCodes.OK).json({ msg: 'No reactions found' });
     else {
         await Reaction.destroy({ where: {} });
-        await redis.del(["single_project, projects"]);
-        
+        await redis.del(["single_project"]);
+        await redis.del(["projects"]);
         res.status(StatusCodes.OK).json({ msg: 'Deleted all reactions' });
     }
 };

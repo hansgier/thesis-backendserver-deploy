@@ -144,7 +144,10 @@ const createProjectReaction = async (user, projectId, reaction_type, res) => {
         reacted_by: user.id,
         project_id: project.id,
     });
-    await redis.del(["single_project, projects"]);
+
+    await redis.del(["single_project"]);
+    await redis.del(["projects"]);
+
     res.status(StatusCodes.CREATED).json({
         msg: 'Reaction created',
         newReaction,
@@ -232,7 +235,8 @@ const updateReactionType = async (reaction, reactionType, res) => {
     reaction.reaction_type = reactionType;
     await reaction.save({ fields: ['reaction_type'] });
 
-    await redis.del(["single_project, projects"]);
+    await redis.del(["single_project"]);
+    await redis.del(["projects"]);
 
     // Send the response
     res.status(StatusCodes.OK).json({
@@ -272,8 +276,8 @@ const editCommentReaction = async (user, commentId, reactionId, reactionType, re
 const deleteReaction = async (reaction, res) => {
     // Delete the reaction
     await reaction.destroy();
-    await redis.del(["single_project, projects"]);
-
+    await redis.del(["single_project"]);
+    await redis.del(["projects"]);
     // Send the response
     res.status(StatusCodes.OK).json({
         msg: `Reaction id: ${ reaction.id } has been deleted`,
