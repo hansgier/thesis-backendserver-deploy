@@ -124,26 +124,53 @@ const createProjectReaction = async (user, projectId, reaction_type, res) => {
     // Find the project by id
     const project = await Project.findByPk(projectId);
     ThrowErrorIf(!project, 'Project not found', NotFoundError);
-
+    let newReaction;
     // Check if the user has already reacted to the project
-    const existingReaction = await Reaction.findOne({
+    const isThereReaction = await Reaction.findOne({
         where: {
             reacted_by: user.id,
             project_id: project.id,
         },
     });
-    ThrowErrorIf(
-        existingReaction,
-        'You have already reacted to this project',
-        ConflictError,
-    );
 
-    // Create a new reaction for the project
-    const newReaction = await Reaction.create({
-        reaction_type,
-        reacted_by: user.id,
-        project_id: project.id,
-    });
+    if (isThereReaction) {
+        if (isThereReaction.reaction_type === reaction_type) {
+            await Reaction.destroy({
+                where: {
+                    reacted_by: user.id,
+                    project_id: project.id,
+                    reaction_type: reaction_type,
+                },
+            });
+            await redis.del(["single_project"]);
+            await redis.del(["projects"]);
+            return res.status(StatusCodes.OK).json({ msg: "Reaction deleted successfully" });
+        } else {
+            // Create a new reaction for the project
+            await Reaction.update(
+                {
+                    reaction_type,
+                },
+                {
+                    where: {
+                        reacted_by: user.id,
+                        project_id: project.id,
+                    },
+                });
+            newReaction = {
+                msg: "Reaction updated successfully",
+            };
+        }
+    } else {
+        // Create a new reaction for the project
+        newReaction = await Reaction.create({
+            reaction_type,
+            reacted_by: user.id,
+            project_id: project.id,
+        });
+
+    }
+
 
     await redis.del(["single_project"]);
     await redis.del(["projects"]);
