@@ -69,10 +69,11 @@ const getReaction = async (req, res) => {
 
     ThrowErrorIf(!reactions, 'Reaction not found', NotFoundError);
 
-    const likes = reactions.find(r => r.reaction_type === 'like')?.count || 0;
-    const dislikes = reactions.find(r => r.reaction_type === 'dislike')?.count || 0;
-
-    res.status(StatusCodes.OK).json({ reactions, hasReacted: hasReacted ? true : false });
+    res.status(StatusCodes.OK).json({
+        reactions,
+        hasReacted: hasReacted ? true : false,
+        myReaction: hasReacted ? hasReacted.reaction_type : null,
+    });
 };
 
 const editReaction = async (req, res) => {
