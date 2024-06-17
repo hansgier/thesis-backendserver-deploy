@@ -49,6 +49,13 @@ const getAllReactions = async (req, res) => {
 const getReaction = async (req, res) => {
     const { projectId } = req.params;
 
+    const hasReacted = await Reaction.findOne({
+        where: {
+            project_id: projectId,
+            reacted_by: req.user.userId,
+        },
+    });
+
     const reactions = await Reaction.findAll({
         where: {
             project_id: projectId,
@@ -65,7 +72,7 @@ const getReaction = async (req, res) => {
     const likes = reactions.find(r => r.reaction_type === 'like')?.count || 0;
     const dislikes = reactions.find(r => r.reaction_type === 'dislike')?.count || 0;
 
-    res.status(StatusCodes.OK).json({ likes, dislikes, reactions });
+    res.status(StatusCodes.OK).json({ reactions, hasReacted: hasReacted ? true : false });
 };
 
 const editReaction = async (req, res) => {
