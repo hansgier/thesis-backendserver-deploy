@@ -2,7 +2,8 @@ const { StatusCodes } = require('http-status-codes');
 const { announcements: Announcement, users: User } = require('../models');
 const { NotFoundError, ThrowErrorIf, BadRequestError, ConflictError } = require("../errors");
 const { getAnnouncementQuery } = require("../utils/helpers");
-const { checkPermissions } = require("../utils");
+const { checkPermissions, cacheExpiries } = require("../utils");
+const redis = require("../config/redis");
 
 const postAnnouncement = async (req, res) => {
     const { title, content } = req.body;
@@ -15,6 +16,9 @@ const postAnnouncement = async (req, res) => {
         content,
         createdBy: user.id,
     });
+
+    await redis.del(["announcements"]);
+
     res.status(StatusCodes.CREATED).json({ msg: 'Announcement created', announcement });
 };
 
@@ -26,11 +30,16 @@ const getAllAnnouncements = async (req, res) => {
 
     if (announcements.length < 1) {
         return res.status(StatusCodes.OK).json({ msg: 'No announcements found' });
-    } else return res.status(StatusCodes.OK).json({
-        totalCount: count,
-        count: announcements.length,
-        announcements,
-    });
+    } else {
+        const data = {
+            totalCount: count,
+            count: announcements.length,
+            announcements,
+        };
+        await redis.set("announcements", JSON.stringify(data), "EX", cacheExpiries.announcements);
+
+        return res.status(StatusCodes.OK).json(data);
+    }
 };
 
 const getAnnouncement = async (req, res) => {
@@ -59,6 +68,7 @@ const editAnnouncement = async (req, res) => {
     announcement.content = content || announcement.content;
 
     await announcement.save();
+    await redis.del(["announcements"]);
 
     res.status(StatusCodes.OK).json({
         msg: `Announcement id: ${ announcement.title } updated!`,
@@ -78,6 +88,7 @@ const deleteAllAnnouncements = async (req, res) => {
     } else {
         await Announcement.destroy({ where: {} });
     }
+    await redis.del(["announcements"]);
     res.status(StatusCodes.OK).json({ message: 'All announcements deleted' });
 };
 
@@ -90,6 +101,7 @@ const deleteAnnouncement = async (req, res) => {
     checkPermissions(req.user, announcement.createdBy);
 
     await Announcement.destroy({ where: { id } });
+    await redis.del(["announcements"]);
 
     res.status(StatusCodes.OK).json({ message: `Announcement id: ${ id } deleted` });
 };

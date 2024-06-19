@@ -8,9 +8,10 @@ const {
     updateBarangay,
     deleteBarangay,
 } = require('../controllers/barangayController');
+const { checkBarangaysCache } = require("../middlewares/checkCache");
 
 router.route('/')
-    .get(getAllBarangays)
+    .get(checkBarangaysCache, getAllBarangays)
     .post(authenticateUser, authorizePermissions, addBarangay)
     .delete(authenticateUser, authorizePermissions, deleteAllBarangays);
 

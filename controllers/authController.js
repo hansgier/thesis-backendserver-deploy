@@ -10,15 +10,12 @@ const {
     NotFoundError,
 } = require("../errors");
 const {
-    createTokenUser,
-    attachCookiesToResponse,
     sendResetPassword,
-    createHashCrypto, comparePassword, generateTokens, generateToken,
+    createHashCrypto,
+    generateTokens,
 } = require("../utils");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { addMinutes } = require('date-fns');
-
 
 const register = async (req, res) => {
     const { username, password, email, role, barangay_id } = req.body;

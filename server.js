@@ -94,11 +94,18 @@ app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 5000;
 
+// ------------------- SERVER-SIDE RENDER ------------------- //
+
+app.get('/', (req, res) => {
+    console.log("Server live!");
+});
+
 // ------------------- START SERVER------------------- //
 const startServer = async () => {
     try {
         app.listen(port);
         console.log(`Server listening on port ${ port }...`);
+
     } catch (e) {
         console.error(`Failed to start the server on port ${ port }`, e);
         process.exit(1);

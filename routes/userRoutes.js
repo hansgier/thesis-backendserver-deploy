@@ -8,9 +8,10 @@ const {
     updateUser,
     deleteUser,
 } = require('../controllers/userController');
+const { checkUsersCache } = require("../middlewares/checkCache");
 
 router.route('/')
-    .get(authenticateUser, getAllUsers)
+    .get(authenticateUser, checkUsersCache, getAllUsers)
     .delete(authenticateUser, authorizePermissions, deleteAllUsers);
 
 router.route('/me')

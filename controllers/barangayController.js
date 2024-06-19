@@ -2,7 +2,8 @@ const { barangays: Barangay, users: User } = require('../models');
 const { StatusCodes } = require('http-status-codes');
 const { Op } = require("sequelize");
 const { ThrowErrorIf, NotFoundError, BadRequestError, ConflictError, NoContentError } = require("../errors");
-const { sortControllerFunc, paginationControllerFunc } = require("../utils");
+const { sortControllerFunc, paginationControllerFunc, cacheExpiries } = require("../utils");
+const redis = require("../config/redis");
 
 // ----------------------------------------------METHODS---------------------------------------------- //
 /**
@@ -58,6 +59,7 @@ const addBarangay = async (req, res) => {
 
     // Create a new barangay with the given name and set hasUser to false
     const barangay = await Barangay.create({ name });
+    await redis.del(["barangays"]);
 
     // Send a response with the added barangay and a message
     res.status(StatusCodes.CREATED).json({
@@ -96,13 +98,15 @@ const getAllBarangays = async (req, res) => {
 
     // If no barangays are found, return a message
     if (count < 1) return res.status(StatusCodes.OK).json({ msg: 'No Barangays Found' });
-
-    // Return the page number, count, and barangays in the response
-    res.status(StatusCodes.OK).json({
+    const data = {
         page: parseInt(req.query.page) || 1,
         count,
         barangays,
-    });
+    };
+    await redis.set("barangays", JSON.stringify(data), "EX", cacheExpiries.barangays);
+
+    // Return the page number, count, and barangays in the response
+    res.status(StatusCodes.OK).json(data);
 };
 
 /**
@@ -155,6 +159,7 @@ const updateBarangay = async (req, res) => {
         where: { id },
     });
 
+    await redis.del(["barangays"]);
     // Send success response
     res.status(StatusCodes.OK).json({ msg: 'Barangay updated successfully' });
 };
@@ -178,6 +183,7 @@ const deleteBarangay = async (req, res) => {
 
     // Delete the barangay from the database
     await Barangay.destroy({ where: { id } });
+    await redis.del(["barangays"]);
 
     // Return a success message
     res.status(StatusCodes.OK).json({ msg: 'Barangay deleted successfully' });
@@ -197,6 +203,7 @@ const deleteAllBarangays = async (req, res) => {
 
     // Delete all barangays from the database
     await Barangay.destroy({ where: {} });
+    await redis.del(["barangays"]);
     // Send a response with a success message
     res.status(StatusCodes.OK).send({ msg: 'All barangays deleted' });
 };

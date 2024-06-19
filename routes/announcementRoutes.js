@@ -7,10 +7,11 @@ const {
     editAnnouncement,
     deleteAnnouncement,
 } = require("../controllers/announcementController");
+const { checkAnnouncementsCache } = require("../middlewares/checkCache");
 const router = require('express').Router();
 
 router.route('/')
-    .get(authenticateUser, getAllAnnouncements)
+    .get(authenticateUser, checkAnnouncementsCache, getAllAnnouncements)
     .post(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), postAnnouncement)
     .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteAllAnnouncements);
 

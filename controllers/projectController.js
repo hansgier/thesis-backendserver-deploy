@@ -97,7 +97,6 @@ const addProject = async (req, res) => {
         await t.commit();
 
         await redis.del(["projects"]);
-        await redis.del(["single_project"]);
 
         res.status(StatusCodes.CREATED).json({ msg: 'Success! New project created', project: newProject });
     } catch (error) {
@@ -225,7 +224,6 @@ const getProject = async (req, res) => {
     // Add reaction count to project
     project.dataValues.reactionCount = await project.countReactions();
     const data = { project };
-    await redis.set("single_project", JSON.stringify(data), "EX", cacheExpiries.single_project);
 
     // Send the project object as a JSON response
     res.status(StatusCodes.OK).json(data);
@@ -339,7 +337,6 @@ const updateProject = async (req, res) => {
 
         await t.commit();
         await redis.del(["projects"]);
-        await redis.del(["single_project"]);
 
         res.status(StatusCodes.OK).json({ msg: 'Success! Project updated', project });
     } catch (error) {
@@ -405,7 +402,6 @@ const deleteProject = async (req, res) => {
     // Delete the project (this will also delete associated records due to cascading delete)
     await project.destroy();
     await redis.del(["projects"]);
-    await redis.del(["single_project"]);
 
     // Return a success message
     res.status(StatusCodes.OK).json({ msg: `Project: ${ id } deleted` });
@@ -466,7 +462,6 @@ const deleteAllProjects = async (req, res) => {
     // Delete all projects that match the where clause (this will also delete associated records due to cascading delete)
     await Project.destroy({ where });
     await redis.del(["projects"]);
-    await redis.del(["single_project"]);
 
     // Return a success message
     res.status(StatusCodes.OK).json({ msg: 'All projects deleted' });

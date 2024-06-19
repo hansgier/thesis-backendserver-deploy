@@ -8,9 +8,10 @@ const {
     updateContact,
     deleteAllContacts, deleteContact,
 } = require("../controllers/contactController");
+const { checkContactsCache } = require("../middlewares/checkCache");
 
 router.route("/")
-    .get(authenticateUser, getAllContacts)
+    .get(authenticateUser, checkContactsCache, getAllContacts)
     .post(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), createContact)
     .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteAllContacts);
 
