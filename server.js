@@ -25,10 +25,8 @@ const corsOptions = {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
     allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Cookie', 'Connection', 'User-Agent', 'Host', 'Content-Length', 'Accept-Encoding'],
 };
-const Redis = require("redis");
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
-const { cloudinaryConfig } = require('./config/cloudinaryConfig');
 const express = require('express');
 const app = express();
 const cloudinary = require('cloudinary').v2;
@@ -37,7 +35,6 @@ cloudinary.config({
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-const fileUpload = require("express-fileupload");
 
 const notFoundMiddleware = require('./middlewares/not-found');
 const errorHandlerMiddleware = require('./middlewares/error-handler');
@@ -84,6 +81,9 @@ app.use('/api/conversations', chatRouter);
 app.use('/api/contacts', contactRouter);
 app.use('/api/media', mediaRouter);
 
+app.get('/', (req, res) => {
+    res.status(200).send("Server live");
+});
 
 // ------------------- ERROR MIDDLEWARES ------------------- //
 
@@ -93,12 +93,6 @@ app.use(errorHandlerMiddleware);
 // ------------------- PORT ------------------- //
 
 const port = process.env.PORT || 5000;
-
-// ------------------- SERVER-SIDE RENDER ------------------- //
-
-app.get('/', (req, res) => {
-    res.status(200).send("Server live");
-});
 
 // ------------------- START SERVER------------------- //
 const startServer = async () => {
