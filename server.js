@@ -97,7 +97,7 @@ const port = process.env.PORT || 5000;
 // ------------------- SERVER-SIDE RENDER ------------------- //
 
 app.get('/', (req, res) => {
-    console.log("Server live!");
+    res.status(200).send("Server live");
 });
 
 // ------------------- START SERVER------------------- //
