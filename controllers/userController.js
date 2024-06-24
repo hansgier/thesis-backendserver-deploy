@@ -129,9 +129,9 @@ const updateUser = async (req, res) => {
 };
 
 const editUser = async (req, res) => {
-    const { username, email, password, barangay_id } = req.body;
+    const { username, email, password, barangay_id, role } = req.body;
     const { userId } = req.params;
-    
+
     // Find the user by ID
     const user = await User.findByPk(userId);
     ThrowErrorIf(!user, `User with id: ${ userId } not found`, NotFoundError);
@@ -153,6 +153,7 @@ const editUser = async (req, res) => {
         // Update the user's information
         user.username = username || user.username;
         user.email = email || user.email;
+        user.role = role || user.role;
         user.barangay_id = barangay_id || user.barangay_id;
     }
 
@@ -168,7 +169,7 @@ const editUser = async (req, res) => {
     await user.reload();
     await redis.del(["users"]);
 
-    res.status(StatusCodes.OK).send({ msg: 'User updated successfully', user });
+    res.status(StatusCodes.OK).send({ msg: 'User edited successfully', user });
 };
 
 const deleteUser = async (req, res) => {
