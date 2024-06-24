@@ -128,6 +128,49 @@ const updateUser = async (req, res) => {
     res.status(StatusCodes.OK).send({ msg: 'User updated successfully', user });
 };
 
+const editUser = async (req, res) => {
+    const { username, email, password, barangay_id } = req.body;
+    const { userId } = req.params;
+    
+    // Find the user by ID
+    const user = await User.findByPk(userId);
+    ThrowErrorIf(!user, `User with id: ${ userId } not found`, NotFoundError);
+
+    // Check if username or email needs to be updated
+    if (username || email) {
+        // Check if the username or email already exists
+        const existingUser = await User.findOne({
+            where: {
+                [Op.or]: [
+                    { username: username || null },
+                    { email: email || null },
+                ],
+                id: { [Op.ne]: userId },
+            },
+        });
+        ThrowErrorIf(existingUser, 'Username or email already exists', ConflictError);
+
+        // Update the user's information
+        user.username = username || user.username;
+        user.email = email || user.email;
+        user.barangay_id = barangay_id || user.barangay_id;
+    }
+
+    // Check if password needs to be updated
+    if (password) {
+        // Hash the new password before saving
+        user.password = await bcrypt.hash(password, 10) || user.password;
+    }
+
+    // Save the updated user
+    await user.save();
+
+    await user.reload();
+    await redis.del(["users"]);
+
+    res.status(StatusCodes.OK).send({ msg: 'User updated successfully', user });
+};
+
 const deleteUser = async (req, res) => {
     const { id: userId } = req.params;
     // check if id is null or empty string
@@ -173,4 +216,5 @@ module.exports = {
     showCurrentUser,
     updateUser,
     deleteUser,
+    editUser,
 };

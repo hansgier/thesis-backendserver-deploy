@@ -7,6 +7,7 @@ const {
     showCurrentUser,
     updateUser,
     deleteUser,
+    editUser,
 } = require('../controllers/userController');
 const { checkUsersCache } = require("../middlewares/checkCache");
 
@@ -22,6 +23,7 @@ router.route('/update-user')
 
 router.route('/:id')
     .get(authenticateUser, authorizePermissions, getUser)
+    .patch(authenticateUser, authorizePermissions, editUser)
     .delete(authenticateUser, authorizePermissions, deleteUser);
 
 
