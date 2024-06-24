@@ -130,11 +130,11 @@ const updateUser = async (req, res) => {
 
 const editUser = async (req, res) => {
     const { username, email, password, barangay_id, role } = req.body;
-    const { userId } = req.params;
+    const { id } = req.params;
 
     // Find the user by ID
-    const user = await User.findByPk(userId);
-    ThrowErrorIf(!user, `User with id: ${ userId } not found`, NotFoundError);
+    const user = await User.findByPk(id);
+    ThrowErrorIf(!user, `User with id: ${ id } not found`, NotFoundError);
 
     // Check if username or email needs to be updated
     if (username || email) {
@@ -145,7 +145,7 @@ const editUser = async (req, res) => {
                     { username: username || null },
                     { email: email || null },
                 ],
-                id: { [Op.ne]: userId },
+                id: { [Op.ne]: id },
             },
         });
         ThrowErrorIf(existingUser, 'Username or email already exists', ConflictError);
