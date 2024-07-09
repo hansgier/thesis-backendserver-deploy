@@ -16,6 +16,7 @@ const {
 } = require("../utils");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const redis = require("../config/redis");
 
 const register = async (req, res) => {
     const { username, password, email, role, barangay_id } = req.body;
@@ -48,6 +49,7 @@ const register = async (req, res) => {
         role: Role,
         barangay_id: barangay_id,
     });
+    await redis.del(["users"]);
 
     res.status(StatusCodes.CREATED).json({ msg: 'Success! User registered', registeredUser });
 };

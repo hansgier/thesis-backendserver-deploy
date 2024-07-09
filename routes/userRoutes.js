@@ -7,12 +7,13 @@ const {
     showCurrentUser,
     updateUser,
     deleteUser,
-    editUser,
+    editUser, addUser,
 } = require('../controllers/userController');
 const { checkUsersCache } = require("../middlewares/checkCache");
 
 router.route('/')
     .get(authenticateUser, checkUsersCache, getAllUsers)
+    .post(authenticateUser, addUser)
     .delete(authenticateUser, authorizePermissions, deleteAllUsers);
 
 router.route('/me')

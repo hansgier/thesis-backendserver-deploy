@@ -1,4 +1,4 @@
-const { users: User } = require('../models');
+const { users: User, Barangay } = require('../models');
 const { StatusCodes } = require('http-status-codes');
 const { Op } = require("sequelize");
 const bcrypt = require('bcryptjs');
@@ -210,6 +210,44 @@ const deleteAllUsers = async (req, res) => {
     res.status(StatusCodes.OK).send({ msg: 'All users deleted' });
 };
 
+const addUser = async (req, res) => {
+    const { username, password, email, role, barangay_id } = req.body;
+
+    // count the users in database
+    const userCount = await User.count({});
+
+    // if there are no users in the database, register the user as admin
+    const Role = userCount < 1 ? 'admin' : role;
+
+    // check if barangay_id exists in the barangay database
+    const barangay = await Barangay.findByPk(barangay_id);
+    ThrowErrorIf(!barangay, 'Barangay does not exist', BadRequestError);
+
+    if (role === 'barangay') {
+        const existingBarangayUser = await User.findOne({
+            where: {
+                barangay_id: barangay_id,
+                role: 'barangay',
+            },
+        });
+        ThrowErrorIf(existingBarangayUser, 'Barangay has already an existing user', ConflictError);
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const registeredUser = await User.create({
+        username: username,
+        password: hashedPassword,
+        email: email,
+        role: Role,
+        barangay_id: barangay_id,
+    });
+    
+    await redis.del(["users"]);
+
+    res.status(StatusCodes.CREATED).json({ msg: 'Success! User registered', registeredUser });
+};
+
+
 module.exports = {
     deleteAllUsers,
     getAllUsers,
@@ -218,4 +256,5 @@ module.exports = {
     updateUser,
     deleteUser,
     editUser,
+    addUser,
 };
