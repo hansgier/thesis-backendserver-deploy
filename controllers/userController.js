@@ -1,4 +1,4 @@
-const { users: User, Barangay } = require('../models');
+const { users: User, barangays: Barangay } = require('../models');
 const { StatusCodes } = require('http-status-codes');
 const { Op } = require("sequelize");
 const bcrypt = require('bcryptjs');
@@ -241,7 +241,7 @@ const addUser = async (req, res) => {
         role: Role,
         barangay_id: barangay_id,
     });
-    
+
     await redis.del(["users"]);
 
     res.status(StatusCodes.CREATED).json({ msg: 'Success! User registered', registeredUser });
