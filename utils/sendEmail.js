@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const nodeMailerConfig = require('./node-mailer');
+require("dotenv").config();
 
 /**
  * Sends an email using the provided parameters.
@@ -14,23 +15,22 @@ const sendEmail = async ({ email_type, to, subject, html }) => {
     // Create a nodemailer transporter using the configuration
     const transporter = nodemailer.createTransport(nodeMailerConfig);
 
-    // Send the email using the transporter
-    await transporter.sendMail({
-        from: {
-            name: 'ORMOC Project Tracking System',
-            address: process.env.SMTP_EMAIL,
-        },
-        to,
-        subject,
-        html,
-    }, (err) => {
-        // Log any errors that occur during sending
-        if (err) {
-            console.log(err);
-        } else {
-            console.log(`${ email_type } sent successfully!`);
-        }
-    });
+    try {
+        // Send the email using the transporter
+        await transporter.sendMail({
+            from: {
+                name: 'Ormoc City Project Information System',
+                address: process.env.SMTP_EMAIL,
+            },
+            to,
+            subject,
+            html,
+        });
+        console.log(`${ email_type } sent successfully!`);
+    } catch (error) {
+        console.error(`Error sending ${ email_type }:`, error);
+        throw error; // Re-throw the error so it can be handled by the caller
+    }
 };
 
-module.exports = sendEmail;
+module.exports = { sendEmail };

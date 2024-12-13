@@ -13,6 +13,7 @@ const {
     sendResetPassword,
     createHashCrypto,
     generateTokens,
+    sendVerificationEmail,
 } = require("../utils");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -20,6 +21,7 @@ const redis = require("../config/redis");
 
 const register = async (req, res) => {
     const { username, password, email, role, barangay_id } = req.body;
+    const { origin } = req.headers;
 
     // count the users in database
     const userCount = await User.count({});
@@ -42,16 +44,54 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = nanoid(36);
+    const hashedToken = await bcrypt.hash(verificationToken, 10);
     const registeredUser = await User.create({
         username: username,
         password: hashedPassword,
         email: email,
         role: Role,
         barangay_id: barangay_id,
+        isVerified: false,
+        verificationToken: hashedToken,
+        verificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
     await redis.del(["users"]);
 
+    // Send verification email
+    await sendVerificationEmail({
+        name: username,
+        email: email,
+        token: hashedToken,
+        origin: origin,
+    });
+
     res.status(StatusCodes.CREATED).json({ msg: 'Success! User registered', registeredUser });
+};
+
+const verifyUser = async (req, res) => {
+    const { email, token } = req.query;
+
+    ThrowErrorIf(!email || !token, 'Please provide an email and verification token', BadRequestError);
+
+    const user = await User.findOne({ where: { email: email } });
+    ThrowErrorIf(!user, 'User not found', NotFoundError);
+
+    if (user.isVerified) {
+        return res.status(StatusCodes.OK).json({ msg: 'User is already verified' });
+    }
+
+    const currentDate = new Date();
+    if (token === user.verificationToken && user.verificationTokenExpiry > currentDate) {
+        user.isVerified = true;
+        user.verificationToken = null;
+        user.verificationTokenExpiry = null;
+        await user.save();
+        return res.status(StatusCodes.OK).json({ success: true, msg: 'Email verified successfully' });
+    } else {
+        res.status(StatusCodes.UNAUTHORIZED).json({ success: false, msg: "Invalid or expired verification token" });
+        throw new BadRequestError('Invalid or expired verification token');
+    }
 };
 
 const login = async (req, res) => {
@@ -63,6 +103,8 @@ const login = async (req, res) => {
     });
     // check if user is found by email
     ThrowErrorIf(!user, 'Invalid email', UnauthenticatedError);
+    // check if the user is verified
+    ThrowErrorIf(!user.isVerified, 'Please verify your email before logging in', UnauthenticatedError);
     // check if the user password is correct
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     ThrowErrorIf(!isPasswordCorrect, 'Incorrect password', UnauthenticatedError);
@@ -182,4 +224,5 @@ module.exports = {
     forgotPassword,
     resetPassword,
     refresh,
+    verifyUser,
 };

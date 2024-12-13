@@ -4,15 +4,15 @@ const tokenExpirations = {
 };
 
 const TAGS = [
-    'Administration And Governance',
-    'General Public Services',
+    'Institutional',
+    'Transportation',
     'Health',
+    'Water',
     'Education',
-    'Livelihood',
+    'Social',
     'Infrastructure',
-    'Environmental Management',
     'Sports And Recreation',
-    "Others",
+    "Economic",
 ];
 
 const STATUS = [

@@ -70,6 +70,18 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.DATE,
                 allowNull: true,
             },
+            isVerified: {
+                type: DataTypes.BOOLEAN,
+                defaultValue: false,
+            },
+            verificationToken: {
+                type: DataTypes.TEXT,
+                allowNull: true,
+            },
+            verificationTokenExpiry: {
+                type: DataTypes.DATE,
+                allowNull: true,
+            },
         },
         {
             timestamps: true,

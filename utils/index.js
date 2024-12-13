@@ -10,6 +10,8 @@ const sortControllerFunc = require('./sortControllerFunc');
 const paginationControllerFunc = require('./paginationControllerFunc');
 const comparePassword = require('./comparePassword');
 const { generateToken, verifyToken, generateTokens } = require("./jwtUtils");
+const { sendVerificationEmail } = require("./sendVerificationEmail");
+
 module.exports = {
     checkPermissions,
     createHash,
@@ -31,4 +33,5 @@ module.exports = {
     generateTokens,
     verifyToken,
     cacheExpiries,
+    sendVerificationEmail,
 };

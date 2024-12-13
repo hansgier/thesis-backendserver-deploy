@@ -70,26 +70,26 @@ module.exports = (sequelize, DataTypes) => {
                     },
                 },
             },
-            progress: {
-                // percentage of completion of the project, ranges from 0 to 100
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                defaultValue: 0,
-                validate: {
-                    min: {
-                        args: [0],
-                        msg: 'Progress cannot be negative',
-                    },
-                    max: {
-                        args: [100],
-                        msg: 'Progress must not exceed 100',
-                    },
-                    isInt: {
-                        args: true,
-                        msg: 'Progress must be an integer',
-                    },
-                },
-            },
+            // progress: {
+            //     // percentage of completion of the project, ranges from 0 to 100
+            //     type: DataTypes.INTEGER,
+            //     allowNull: false,
+            //     defaultValue: 0,
+            //     validate: {
+            //         min: {
+            //             args: [0],
+            //             msg: 'Progress cannot be negative',
+            //         },
+            //         max: {
+            //             args: [100],
+            //             msg: 'Progress must not exceed 100',
+            //         },
+            //         isInt: {
+            //             args: true,
+            //             msg: 'Progress must be an integer',
+            //         },
+            //     },
+            // },
             funding_source: {
                 type: DataTypes.STRING,
                 allowNull: true,
@@ -99,7 +99,7 @@ module.exports = (sequelize, DataTypes) => {
                 allowNull: true,
             },
             contract_term: {
-                type: DataTypes.INTEGER,
+                type: DataTypes.STRING,
                 allowNull: true,
             },
             contractor: {

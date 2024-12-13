@@ -240,6 +240,7 @@ const addUser = async (req, res) => {
         email: email,
         role: Role,
         barangay_id: barangay_id,
+        isVerified: true,
     });
 
     await redis.del(["users"]);

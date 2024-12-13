@@ -79,19 +79,32 @@ const getAllBarangays = async (req, res) => {
     const query = getQuery(req);
 
     // Include the associated users with each barangay
-    query.include = [
-        {
-            model: User,
-            as: 'users',
-            where: {
-                role: { [Op.eq]: 'barangay' },
-            },
-            attributes: ['id', 'username', 'email'],
-        },
-    ];
+    // query.include = [
+    //     {
+    //         model: User,
+    //         as: 'users',
+    //         where: {
+    //             role: { [Op.eq]: 'barangay' },
+    //         },
+    //         attributes: ['id', 'username', 'email'],
+    //     },
+    // ];
 
     // Find all barangays based on the query
-    const barangays = await Barangay.findAll(query);
+    const barangays = await Barangay.findAll({
+        ...query,
+        include: [
+            {
+                model: User,
+                as: 'users',
+                where: {
+                    role: { [Op.eq]: 'barangay' },
+                },
+                attributes: ['id', 'username', 'email'],
+                required: false,
+            },
+        ],
+    });
 
     // Count the total number of barangays
     const count = await Barangay.count();
