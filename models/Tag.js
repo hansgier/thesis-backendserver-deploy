@@ -2,14 +2,8 @@ const { TAGS } = require('../utils');
 module.exports = (sequelize, DataTypes) => {
     const Tag = sequelize.define('tag', {
             name: {
-                type: DataTypes.ENUM(...TAGS),
+                type: DataTypes.STRING,
                 allowNull: false,
-                validate: {
-                    isIn: {
-                        args: [TAGS],
-                        msg: `Tags must be one of the following: ${ TAGS }`,
-                    },
-                },
             },
         },
         {

@@ -17,6 +17,7 @@ module.exports = (db) => {
         conversations: Conversation,
         messages: Message,
         contacts: Contact,
+        fundingSources: FundingSource,
     } = db;
 
     // User - Barangay (many-to-one)
@@ -70,6 +71,10 @@ module.exports = (db) => {
     // Project - Reaction (one-to-many)
     Project.hasMany(Reaction, { foreignKey: 'project_id', as: 'reactions', onDelete: 'cascade' });
     Reaction.belongsTo(Project, { foreignKey: 'project_id', as: 'project' });
+
+    // Project - FundingSource (many-to-one)
+    Project.belongsTo(FundingSource, { foreignKey: 'funding_source_id', as: 'fundingSource' });
+    FundingSource.hasMany(Project, { foreignKey: 'funding_source_id', as: 'projects' });
 
     // Project - Tag (many-to-many)
     Project.belongsToMany(Tag, {

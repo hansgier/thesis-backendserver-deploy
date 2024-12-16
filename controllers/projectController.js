@@ -10,6 +10,7 @@ const {
     media: Media,
     updates: Update,
     reactions: Reaction,
+    fundingSources: FundingSource,
 } = require('../models');
 const {
     ThrowErrorIf,
@@ -53,6 +54,20 @@ const addProject = async (req, res) => {
     try {
         const { tags, barangays, user } = await validationCreate(req, barangayIds, tagsIds);
 
+        let fundingSourceRecord = null;
+        if (funding_source) {
+            // Check if the funding source already exists
+            fundingSourceRecord = await FundingSource.findOne({
+                where: { name: funding_source },
+                transaction: t,
+            });
+
+            // If it doesn't exist, create a new one
+            if (!fundingSourceRecord) {
+                fundingSourceRecord = await FundingSource.create({ name: funding_source }, { transaction: t });
+            }
+        }
+
         const projectData = {
             title,
             description,
@@ -61,7 +76,7 @@ const addProject = async (req, res) => {
             due_date,
             completion_date: !completion_date ? null : completion_date,
             status,
-            funding_source,
+            funding_source: !fundingSourceRecord ? null : fundingSourceRecord.id,
             implementing_agency,
             contract_term,
             contractor,
@@ -123,9 +138,11 @@ const getAllProjects = async (req, res) => {
     // Retrieve all projects based on the options
     const projects = await Project.findAll(options);
 
+
     // Add comment count, reaction count (likes and dislikes) to each project
     for (const project of projects) {
         project.dataValues.commentCount = await project.countComments();
+        project.dataValues.funding_source = await FundingSource.findByPk(project.funding_source, { attributes: ['id', 'name'] });
 
         // Get the reactions for the project
         const reactions = await project.getReactions({
@@ -218,6 +235,8 @@ const getProject = async (req, res) => {
         ],
     });
 
+    project.dataValues.funding_source = await FundingSource.findByPk(project.funding_source, { attributes: ['id', 'name'] });
+
     // Check if the project with the given ID is not found
     ThrowErrorIf(!project, `Project: ${ id } not found`, NotFoundError);
 
@@ -278,6 +297,11 @@ const updateProject = async (req, res) => {
                     as: 'media',
                     attributes: ['id', 'url'],
                 },
+                {
+                    model: FundingSource,
+                    as: 'fundingSource',
+                    attributes: ['id', 'name'],
+                },
             ],
             transaction: t,
         });
@@ -285,6 +309,18 @@ const updateProject = async (req, res) => {
         ThrowErrorIf(!project, `Project: ${ id } not found`, NotFoundError);
 
         const { tags, barangays } = await validateAndUpdateProject(barangayIds, tagsIds);
+        let fundingSourceRecord = null;
+        if (funding_source) {
+            // Check if the funding source already exists or create a new one
+            fundingSourceRecord = await FundingSource.findOne({
+                where: { name: funding_source },
+                transaction: t,
+            });
+
+            if (!fundingSourceRecord) {
+                fundingSourceRecord = await FundingSource.create({ name: funding_source }, { transaction: t });
+            }
+        }
 
         const projectData = {
             title: title || project.title,
@@ -295,7 +331,7 @@ const updateProject = async (req, res) => {
             due_date: due_date || project.due_date,
             completion_date: completion_date || project.completion_date,
             status: status || project.status,
-            funding_source: funding_source || project.funding_source,
+            funding_source: !fundingSourceRecord ? project.funding_source : fundingSourceRecord.id,
             implementing_agency: implementing_agency || project.implementing_agency,
             contract_term: contract_term || project.contract_term,
             contractor: contractor || project.contractor,
@@ -467,6 +503,56 @@ const deleteAllProjects = async (req, res) => {
     res.status(StatusCodes.OK).json({ msg: 'All projects deleted' });
 };
 
+/**
+ * Retrieves all funding sources.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves with the list of funding sources.
+ */
+const getAllFundingSources = async (req, res) => {
+    try {
+        const fundingSources = await FundingSource.findAll({
+            attributes: ['id', 'name'],
+        });
+
+        res.status(StatusCodes.OK).json({ fundingSources });
+    } catch (error) {
+        console.error(error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            msg: 'Failed to retrieve funding sources',
+            error: error.message,
+        });
+    }
+};
+
+/**
+ * Retrieves a funding source by its ID.
+ *
+ * @param {Object} req - The request object.
+ * @param {Object} res - The response object.
+ * @returns {Promise<void>} - A promise that resolves with the funding source.
+ */
+const getFundingSource = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const fundingSource = await FundingSource.findByPk(id, {
+            attributes: ['id', 'name'],
+        });
+
+        ThrowErrorIf(!fundingSource, `Funding source: ${ id } not found`, NotFoundError);
+
+        res.status(StatusCodes.OK).json({ fundingSource });
+    } catch (error) {
+        console.error(error);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            msg: 'Failed to retrieve funding source',
+            error: error.message,
+        });
+    }
+};
+
 
 module.exports = {
     addProject,
@@ -475,4 +561,6 @@ module.exports = {
     updateProject,
     deleteProject,
     deleteAllProjects,
+    getAllFundingSources,
+    getFundingSource,
 };

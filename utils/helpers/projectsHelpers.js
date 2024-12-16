@@ -6,6 +6,7 @@ const {
     media: Media,
     users: User,
     reactions: Reaction,
+    fundingSources: FundingSource,
 } = require("../../models");
 const {
     BadRequestError,

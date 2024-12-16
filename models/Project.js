@@ -91,8 +91,12 @@ module.exports = (sequelize, DataTypes) => {
             //     },
             // },
             funding_source: {
-                type: DataTypes.STRING,
+                type: DataTypes.INTEGER,
                 allowNull: true,
+                references: {
+                    model: 'funding_sources',
+                    key: 'id',
+                },
             },
             implementing_agency: {
                 type: DataTypes.STRING,

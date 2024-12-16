@@ -33,6 +33,7 @@ db.announcements = require('./Announcement')(sequelize, DataTypes);
 db.conversations = require('./Conversation')(sequelize, DataTypes);
 db.messages = require('./Message')(sequelize, DataTypes);
 db.contacts = require('./Contact')(sequelize, DataTypes);
+db.fundingSources = require('./fundingSource')(sequelize, DataTypes);
 
 associations(db);
 

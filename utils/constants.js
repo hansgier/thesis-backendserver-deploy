@@ -21,6 +21,7 @@ const STATUS = [
     'on_hold',
     'completed',
     'cancelled',
+    'approved_proposal',
 ];
 
 const REACTIONS = [

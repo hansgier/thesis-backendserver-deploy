@@ -7,7 +7,7 @@ const {
     getProject,
     updateProject,
     deleteProject,
-    deleteAllProjects,
+    deleteAllProjects, getAllFundingSources, getFundingSource,
 } = require('../controllers/projectController');
 const {
     getAllProjectComments,
@@ -101,5 +101,11 @@ router.route('/:projectId/update/:updateId/media')
 router.route('/:projectId/update/:updateId/media/:id')
     .delete(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), deleteMedia);
 
+// ---------------------------FUNDING SOURCES--------------------------- //
+router.route('/fundingSources')
+    .get(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), getAllFundingSources);
+
+router.route('/fundingSources/:id')
+    .get(authenticateUser, authorizePermission('admin', 'barangay', 'assistant_admin'), getFundingSource);
 
 module.exports = router;
