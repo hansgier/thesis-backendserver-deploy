@@ -391,8 +391,6 @@ const getProjectQuery = ({
                              sort,
                              progressRange,
                              costRange,
-                             page = "1",
-                             limit = "10",
                          }) => {
     // Set default options
     const options = {
@@ -444,7 +442,7 @@ const getProjectQuery = ({
     costRange && filterRange(options, 'cost', costRange);
 
     // Paginate projects if page and limit query parameters are provided
-    (page && limit) && paginationControllerFunc(page, limit, options);
+    // (page && limit) && paginationControllerFunc(page, limit, options);
 
     return options;
 };
