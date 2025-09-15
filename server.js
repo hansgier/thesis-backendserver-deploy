@@ -5,9 +5,9 @@ require('./utils/deleteExpiredMessages');
 require('express-async-errors');
 
 const allowedOrigins = [
-    "localhost:5173",
-    "localhost:5000",
-    "ormocpis.vercel.app",
+    "http://localhost:5173",
+    "http://localhost:5000",
+    "https://ormocpis.vercel.app",
 ];
 
 // ------------------- IMPORTS ------------------- //
