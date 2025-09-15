@@ -57,12 +57,12 @@ const register = async (req, res) => {
     });
 
     // Send verification email
-    await sendVerificationEmail({
-        name: username,
-        email: email,
-        token: hashedToken,
-        origin: origin,
-    });
+    // await sendVerificationEmail({
+    //     name: username,
+    //     email: email,
+    //     token: hashedToken,
+    //     origin: origin,
+    // });
 
     res.status(StatusCodes.CREATED).json({ msg: 'Success! User registered', registeredUser });
 };
@@ -102,7 +102,7 @@ const login = async (req, res) => {
     // check if user is found by email
     ThrowErrorIf(!user, 'Invalid email', UnauthenticatedError);
     // check if the user is verified
-    ThrowErrorIf(!user.isVerified, 'Please verify your email before logging in', UnauthenticatedError);
+    // ThrowErrorIf(!user.isVerified, 'Please verify your email before logging in', UnauthenticatedError);
     // check if the user password is correct
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     ThrowErrorIf(!isPasswordCorrect, 'Incorrect password', UnauthenticatedError);
