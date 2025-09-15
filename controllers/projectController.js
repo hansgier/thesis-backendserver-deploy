@@ -22,7 +22,6 @@ const { checkPermissions, cacheExpiries } = require("../utils");
 const { validateAndUpdateProject, validationCreate } = require("../utils/helpers/projectsHelpers");
 const path = require("path");
 const fs = require("fs");
-const redis = require("../config/redis");
 
 /**
  * Add a new project to the database.
@@ -111,7 +110,6 @@ const addProject = async (req, res) => {
 
         await t.commit();
 
-        await redis.del(["projects"]);
 
         res.status(StatusCodes.CREATED).json({ msg: 'Success! New project created', project: newProject });
     } catch (error) {
@@ -175,8 +173,6 @@ const getAllProjects = async (req, res) => {
         projects,
     };
 
-    // redisClient.setEx("projects", cacheExpiries.projects, JSON.stringify(data));
-    await redis.set("projects", JSON.stringify(data), 'EX', cacheExpiries.projects);
 
     // Return a response with the count of projects, projects, and likes/dislikes
     return res.status(StatusCodes.OK).json(data);
@@ -372,7 +368,6 @@ const updateProject = async (req, res) => {
         await project.reload({ transaction: t });
 
         await t.commit();
-        await redis.del(["projects"]);
 
         res.status(StatusCodes.OK).json({ msg: 'Success! Project updated', project });
     } catch (error) {
@@ -437,7 +432,6 @@ const deleteProject = async (req, res) => {
 
     // Delete the project (this will also delete associated records due to cascading delete)
     await project.destroy();
-    await redis.del(["projects"]);
 
     // Return a success message
     res.status(StatusCodes.OK).json({ msg: `Project: ${ id } deleted` });
@@ -497,7 +491,6 @@ const deleteAllProjects = async (req, res) => {
 
     // Delete all projects that match the where clause (this will also delete associated records due to cascading delete)
     await Project.destroy({ where });
-    await redis.del(["projects"]);
 
     // Return a success message
     res.status(StatusCodes.OK).json({ msg: 'All projects deleted' });

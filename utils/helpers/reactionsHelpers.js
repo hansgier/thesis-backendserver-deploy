@@ -9,7 +9,6 @@ const { projects: Project, reactions: Reaction, comments: Comment } = require(".
 const { StatusCodes } = require("http-status-codes");
 const { paginationControllerFunc } = require("../index");
 const { Op } = require("sequelize");
-const redis = require("../../config/redis");
 
 const REACTION_TARGETS = {
     PROJECT: 'project',
@@ -142,8 +141,6 @@ const createProjectReaction = async (user, projectId, reaction_type, res) => {
                     reaction_type: reaction_type,
                 },
             });
-            await redis.del(["single_project"]);
-            await redis.del(["projects"]);
             return res.status(StatusCodes.OK).json({ msg: "Reaction deleted successfully" });
         } else {
             // Create a new reaction for the project
@@ -172,8 +169,6 @@ const createProjectReaction = async (user, projectId, reaction_type, res) => {
     }
 
 
-    await redis.del(["single_project"]);
-    await redis.del(["projects"]);
 
     res.status(StatusCodes.CREATED).json({
         msg: 'Reaction created',
@@ -262,8 +257,6 @@ const updateReactionType = async (reaction, reactionType, res) => {
     reaction.reaction_type = reactionType;
     await reaction.save({ fields: ['reaction_type'] });
 
-    await redis.del(["single_project"]);
-    await redis.del(["projects"]);
 
     // Send the response
     res.status(StatusCodes.OK).json({
@@ -303,8 +296,6 @@ const editCommentReaction = async (user, commentId, reactionId, reactionType, re
 const deleteReaction = async (reaction, res) => {
     // Delete the reaction
     await reaction.destroy();
-    await redis.del(["single_project"]);
-    await redis.del(["projects"]);
     // Send the response
     res.status(StatusCodes.OK).json({
         msg: `Reaction id: ${ reaction.id } has been deleted`,

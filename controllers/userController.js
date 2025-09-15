@@ -13,7 +13,6 @@ const {
     attachCookiesToResponse, cacheExpiries,
 } = require("../utils");
 const { getUserQuery } = require("../utils/helpers");
-const redis = require("../config/redis");
 
 /**
  * Retrieves all users and sends a JSON response with the count and users.
@@ -35,7 +34,6 @@ const getAllUsers = async (req, res) => {
         return res.status(StatusCodes.OK).json({ msg: 'No users found' });
     }
     const data = { count, users };
-    await redis.set("users", JSON.stringify(data), "EX", cacheExpiries.users);
 
     // Send a JSON response with the count and users
     res.status(StatusCodes.OK).json(data);
@@ -123,7 +121,6 @@ const updateUser = async (req, res) => {
     await user.save();
 
     await user.reload();
-    await redis.del(["users"]);
 
     res.status(StatusCodes.OK).send({ msg: 'User updated successfully', user });
 };
@@ -167,7 +164,6 @@ const editUser = async (req, res) => {
     await user.save();
 
     await user.reload();
-    await redis.del(["users"]);
 
     res.status(StatusCodes.OK).send({ msg: 'User edited successfully', user });
 };
@@ -181,7 +177,6 @@ const deleteUser = async (req, res) => {
     ThrowErrorIf(!user, `User with id: ${ userId } not found`, NotFoundError);
     // delete the user
     await User.destroy({ where: { id: userId } });
-    await redis.del(["users"]);
     res.status(StatusCodes.OK).send({ msg: `User with id: ${ userId } has been deleted` });
 };
 
@@ -205,7 +200,6 @@ const deleteAllUsers = async (req, res) => {
         where: { role: { [Op.ne]: 'admin' } },
     });
 
-    await redis.del(["users"]);
     // Send a success response
     res.status(StatusCodes.OK).send({ msg: 'All users deleted' });
 };
@@ -243,7 +237,6 @@ const addUser = async (req, res) => {
         isVerified: true,
     });
 
-    await redis.del(["users"]);
 
     res.status(StatusCodes.CREATED).json({ msg: 'Success! User registered', registeredUser });
 };

@@ -17,7 +17,6 @@ const {
 } = require("../utils");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const redis = require("../config/redis");
 
 const register = async (req, res) => {
     const { username, password, email, role, barangay_id } = req.body;
@@ -56,7 +55,6 @@ const register = async (req, res) => {
         verificationToken: hashedToken,
         verificationTokenExpiry: new Date(Date.now() + 24 * 60 * 60 * 1000),
     });
-    await redis.del(["users"]);
 
     // Send verification email
     await sendVerificationEmail({

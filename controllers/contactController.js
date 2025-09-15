@@ -2,7 +2,6 @@ const { sequelize, barangays: Barangay, users: User, contacts: Contact, Project 
 const { StatusCodes } = require("http-status-codes");
 const { ThrowErrorIf, NotFoundError, BadRequestError } = require("../errors");
 const { checkPermissions, cacheExpiries } = require("../utils");
-const redis = require("../config/redis");
 const cloudinary = require("cloudinary").v2;
 
 
@@ -18,7 +17,6 @@ const getAllContacts = async (req, res) => {
         totalCount: totalCount,
         contacts,
     };
-    await redis.set("contacts", JSON.stringify(data), "EX", cacheExpiries.contacts);
 
     res.status(StatusCodes.OK).json(data);
 };
@@ -49,7 +47,6 @@ const createContact = async (req, res) => {
         );
 
         await t.commit();
-        await redis.del(["contacts"]);
         res.status(StatusCodes.CREATED).json({ msg: 'Success! New contact created', contact });
     } catch (err) {
         await t.rollback();
@@ -78,7 +75,6 @@ const updateContact = async (req, res) => {
 
         await contact.save({ transaction: t });
         await t.commit();
-        await redis.del(["contacts"]);
 
         res.status(200).json({ msg: `Contact ID: ${ id } updated`, contact });
     } catch (err) {
@@ -102,7 +98,6 @@ const deleteContact = async (req, res) => {
     }
 
     await contact.destroy();
-    await redis.del(["contacts"]);
 
     res.status(StatusCodes.OK).json({ msg: `Contact ID: ${ id } deleted` });
 };
@@ -130,7 +125,6 @@ const deleteAllContacts = async (req, res) => {
     await Promise.all(deleteLogosPromises);
 
     await Contact.destroy({ where });
-    await redis.del(["contacts"]);
     res.status(StatusCodes.OK).json({ msg: 'All contacts deleted' });
 };
 
